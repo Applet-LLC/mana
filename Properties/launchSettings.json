@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "mana (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "mana (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

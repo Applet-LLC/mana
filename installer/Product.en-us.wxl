@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="en-US" Codepage="1252" xmlns="http://wixtoolset.org/schemas/v4/wxl">
+  <String Id="ProductLanguage" Value="1033" />
+  <String Id="ProductName" Value="mana as setting keyboard layout" />
+  <String Id="ShortcutName" Value="mana as setting keyboard layout" />
+  <String Id="ShortcutDescription" Value="View and change the hardware keyboard layout (i8042prt / per-device overrides)" />
+  <String Id="DowngradeError" Value="A newer version of mana as setting keyboard layout is already installed." />
+  <String Id="OsTooOld" Value="mana as setting keyboard layout requires 64-bit Windows 11 (build 22000) or later." />
+</WixLocalization>

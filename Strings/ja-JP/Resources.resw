@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="AppTitle" xml:space="preserve"><value>キーボードレイアウト設定ツール まな</value></data>
+  <data name="Button_Reload" xml:space="preserve"><value>再読込</value></data>
+  <data name="Button_OpenSettings" xml:space="preserve"><value>言語設定を開く</value></data>
+  <data name="Button_ShowHidden" xml:space="preserve"><value>非表示も表示</value></data>
+  <data name="Button_HideHidden" xml:space="preserve"><value>非表示を隠す</value></data>
+  <data name="Button_ApplyDevice" xml:space="preserve"><value>デバイス設定を適用</value></data>
+  <data name="Button_ClearDevice" xml:space="preserve"><value>デバイス設定を削除</value></data>
+  <data name="Button_ApplyGlobalPreset" xml:space="preserve"><value>グローバルプリセット適用</value></data>
+  <data name="Button_ApplyGlobal" xml:space="preserve"><value>グローバル値を保存</value></data>
+  <data name="Button_ClearGlobal" xml:space="preserve"><value>グローバル設定を削除</value></data>
+  <data name="Button_SaveHidden" xml:space="preserve"><value>表示設定を保存</value></data>
+
+  <data name="Section_Devices" xml:space="preserve"><value>接続中のキーボード</value></data>
+  <data name="Section_DeviceDetail" xml:space="preserve"><value>デバイスごとのオーバーライド</value></data>
+  <data name="Section_Global" xml:space="preserve"><value>グローバル設定 (i8042prt)</value></data>
+  <data name="Section_Guidance" xml:space="preserve"><value>事前準備: 設定 → 時刻と言語 → 言語と地域 → 日本語 → 言語のオプション で「ハードウェア キーボードのレイアウト」を「接続済みキーボード レイアウトを使用する」にしてください。</value></data>
+
+  <data name="Column_Name" xml:space="preserve"><value>名称</value></data>
+  <data name="Column_Layout" xml:space="preserve"><value>レイアウト</value></data>
+  <data name="Column_Source" xml:space="preserve"><value>適用元</value></data>
+  <data name="Column_Type" xml:space="preserve"><value>タイプ</value></data>
+  <data name="Column_Subtype" xml:space="preserve"><value>サブタイプ</value></data>
+  <data name="Column_Hidden" xml:space="preserve"><value>非表示</value></data>
+
+  <data name="Label_InstancePath" xml:space="preserve"><value>デバイスインスタンスパス</value></data>
+  <data name="Label_HardwareIds" xml:space="preserve"><value>ハードウェア ID</value></data>
+  <data name="Label_Preset" xml:space="preserve"><value>国・配列プリセット</value></data>
+  <data name="Label_Type" xml:space="preserve"><value>タイプ</value></data>
+  <data name="Label_Subtype" xml:space="preserve"><value>サブタイプ</value></data>
+  <data name="Label_Identifier" xml:space="preserve"><value>OverrideKeyboardIdentifier</value></data>
+  <data name="Label_LayerDriverJpn" xml:space="preserve"><value>LayerDriver JPN</value></data>
+  <data name="Label_LayerDriverKor" xml:space="preserve"><value>LayerDriver KOR</value></data>
+  <data name="Label_Effective" xml:space="preserve"><value>実効値</value></data>
+
+  <data name="Source_Device" xml:space="preserve"><value>デバイス</value></data>
+  <data name="Source_Global" xml:space="preserve"><value>グローバル</value></data>
+  <data name="Source_Auto" xml:space="preserve"><value>自動検出</value></data>
+
+  <data name="Preset_US101" xml:space="preserve"><value>拡張 101/102（US）</value></data>
+  <data name="Preset_JapaneseJIS" xml:space="preserve"><value>日本語（JIS）</value></data>
+  <data name="Preset_Korean101Type1" xml:space="preserve"><value>韓国語 101 Type 1</value></data>
+  <data name="Preset_Korean101Type3" xml:space="preserve"><value>韓国語 101 Type 3</value></data>
+  <data name="Preset_Custom" xml:space="preserve"><value>カスタム</value></data>
+
+  <data name="Layout_AutoDetect" xml:space="preserve"><value>自動検出</value></data>
+  <data name="Layout_CustomFormat" xml:space="preserve"><value>カスタム (Type={0}, Subtype={1})</value></data>
+
+  <data name="Status_LoadedFormat" xml:space="preserve"><value>{0} 件のキーボードデバイスを読み込みました。</value></data>
+  <data name="Status_DeviceApplied" xml:space="preserve"><value>デバイス設定を保存しました。USB は抜き差し、内蔵は再起動で反映されます。</value></data>
+  <data name="Status_DeviceCleared" xml:space="preserve"><value>デバイス設定を削除しました。再接続または再起動で反映されます。</value></data>
+  <data name="Status_GlobalPresetApplied" xml:space="preserve"><value>グローバルプリセットを適用しました（Identifier / LayerDriver 含む）。再起動が必要です。</value></data>
+  <data name="Status_GlobalApplied" xml:space="preserve"><value>グローバル値を保存しました。再起動が必要です。</value></data>
+  <data name="Status_GlobalCleared" xml:space="preserve"><value>グローバル設定を削除しました。再起動が必要です。</value></data>
+  <data name="Status_ErrorFormat" xml:space="preserve"><value>エラー: {0}</value></data>
+  <data name="Settings_Opened" xml:space="preserve"><value>「言語と地域」を開きました。日本語 → 言語のオプション → ハードウェア キーボードのレイアウト を確認してください。</value></data>
+  <data name="Settings_OpenFailed" xml:space="preserve"><value>設定アプリを開けませんでした。</value></data>
+  <data name="Settings_OpenErrorFormat" xml:space="preserve"><value>設定アプリを開けませんでした: {0}</value></data>
+  <data name="Button_RestartElevated" xml:space="preserve"><value>管理者として再起動</value></data>
+  <data name="Status_NotElevated" xml:space="preserve"><value>管理者権限なしで起動中です。閲覧は可能ですが、HKLM への書き込みには昇格が必要です。</value></data>
+  <data name="Status_Elevated" xml:space="preserve"><value>管理者として実行中です。レジストリ書き込みが可能です。</value></data>
+  <data name="Status_ElevationNeeded" xml:space="preserve"><value>HKLM への書き込みには管理者権限が必要です。「管理者として再起動」を使ってください。</value></data>
+  <data name="Status_ElevationCancelled" xml:space="preserve"><value>昇格がキャンセルされました。</value></data>
+</root>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  mana インストーラー（WiX v5）。
+  publish\win-x64 の self-contained 出力を Files 要素で収穫する。
+  en-US / ja-JP は Build-Installer.ps1 がカルチャ別にビルドし、使用許諾 RTF を切り替える。
+  ProductVersion は exe の FileVersion（1.0.0）。アプリと機能の表示は DisplayVersion=1.00。
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package
+    Name="!(loc.ProductName)"
+    Manufacturer="Applet LLC"
+    Version="!(bind.FileVersion.FIL_AppExe)"
+    Language="!(loc.ProductLanguage)"
+    UpgradeCode="{2EB4A338-9D4B-488A-A919-36CE59BF60C7}"
+    Scope="perMachine">
+
+    <!-- 同バージョンの上書きでもアップグレード（旧製品の除去 → 新規インストール）を発火させる。 -->
+    <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" AllowSameVersionUpgrades="yes" />
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- アプリは TargetPlatformMinVersion=10.0.22000（Windows 11）でビルドしている。 -->
+    <Property Id="WINBUILDNUMBER" Secure="yes">
+      <RegistrySearch Id="RS_WinBuildNumber" Root="HKLM"
+                      Key="SOFTWARE\Microsoft\Windows NT\CurrentVersion"
+                      Name="CurrentBuildNumber" Type="raw" />
+    </Property>
+    <Launch Condition="Installed OR (VersionNT64 AND WINBUILDNUMBER &gt;= 22000)" Message="!(loc.OsTooOld)" />
+
+    <Icon Id="ICO_App" SourceFile="$(var.AppIcon)" />
+    <Property Id="ARPPRODUCTICON" Value="ICO_App" />
+
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.LicenseRtfFile)" />
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+    <!-- Windows 10 以降で ProgressDlg に未置換の ActionText テンプレートが出る既知の不具合への対策。 -->
+    <UIRef Id="WixUI_ErrorProgressText" />
+
+    <!-- PublishProduct が書く DisplayVersion（1.0.0）を、外向けの 1.00 で上書きする。 -->
+    <CustomAction Id="CA_SetDisplayVersion"
+                  Directory="System64Folder"
+                  ExeCommand="&quot;[System64Folder]reg.exe&quot; ADD &quot;HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[ProductCode]&quot; /v DisplayVersion /t REG_SZ /d 1.00 /f /reg:64"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+    <InstallExecuteSequence>
+      <Custom Action="CA_SetDisplayVersion" After="PublishProduct" Condition="NOT REMOVE~=&quot;ALL&quot;" />
+    </InstallExecuteSequence>
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="mana" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AppletStartMenuFolder" Name="Applet" />
+    </StandardDirectory>
+
+    <Feature Id="F_Main" Title="!(loc.ProductName)" Level="1" AllowAbsent="no">
+      <ComponentRef Id="CMP_AppExe" />
+      <ComponentGroupRef Id="CG_AppFiles" />
+    </Feature>
+
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Component Id="CMP_AppExe">
+        <File Id="FIL_AppExe" Source="$(var.PublishDir)mana.exe" KeyPath="yes">
+          <Shortcut Id="SC_StartMenu"
+                    Directory="AppletStartMenuFolder"
+                    Name="!(loc.ShortcutName)"
+                    Description="!(loc.ShortcutDescription)"
+                    WorkingDirectory="INSTALLFOLDER"
+                    Icon="ICO_App"
+                    Advertise="no" />
+        </File>
+        <RemoveFolder Id="RM_AppletStartMenu" Directory="AppletStartMenuFolder" On="uninstall" />
+      </Component>
+    </DirectoryRef>
+
+    <ComponentGroup Id="CG_AppFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(var.PublishDir)**">
+        <Exclude Files="$(var.PublishDir)mana.exe" />
+        <Exclude Files="$(var.PublishDir)**\*.pdb" />
+      </Files>
+    </ComponentGroup>
+  </Package>
+</Wix>

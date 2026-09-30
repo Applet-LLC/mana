@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Mana.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Mana"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:Mana.ViewModels"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="Opacity" Value="0.75" />
+            <Setter Property="Margin" Value="0,8,0,4" />
+        </Style>
+        <Style x:Key="CompactLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Opacity" Value="0.75" />
+            <Setter Property="Margin" Value="0,0,0,2" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+    </Page.Resources>
+
+    <Grid Padding="16" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock
+            x:Name="GuidanceText"
+            Grid.Row="0"
+            TextWrapping="Wrap" />
+
+        <Grid Grid.Row="1" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button x:Name="ReloadButton" Click="ReloadButton_Click" />
+                <Button x:Name="LanguageButton" Click="LanguageButton_Click" />
+                <Button x:Name="ShowHiddenButton" Click="ShowHiddenButton_Click" />
+                <Button x:Name="SaveHiddenButton" Click="SaveHiddenButton_Click" />
+                <Button x:Name="OpenSettingsButton" Click="OpenSettingsButton_Click" />
+                <Button x:Name="OpenDeviceRegistryButton" Click="OpenDeviceRegistryButton_Click" />
+                <Button x:Name="ElevateButton" Click="ElevateButton_Click" />
+            </StackPanel>
+            <StackPanel
+                Grid.Column="1"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button x:Name="ApplyDeviceButton" Click="ApplyDeviceButton_Click" />
+                <Button x:Name="ClearDeviceButton" Click="ClearDeviceButton_Click" />
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="2" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.3*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0" RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="DevicesHeader" Style="{StaticResource SectionHeader}" />
+                <ListView
+                    x:Name="DeviceList"
+                    Grid.Row="1"
+                    SelectionChanged="DeviceList_SelectionChanged">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="vm:KeyboardItemViewModel">
+                            <Grid ColumnSpacing="8" Padding="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="140" />
+                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{x:Bind FriendlyName}" TextWrapping="WrapWholeWords" />
+                                    <TextBlock
+                                        FontSize="12"
+                                        Opacity="0.8"
+                                        Text="{x:Bind ShellFriendlyName}"
+                                        TextWrapping="WrapWholeWords"
+                                        Visibility="{x:Bind HasShellFriendlyName}" />
+                                    <TextBlock
+                                        FontSize="11"
+                                        IsTextSelectionEnabled="True"
+                                        Opacity="0.65"
+                                        Text="{x:Bind InstancePath}"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <TextBlock
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Bind LayoutDisplayName, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Bind SourceDisplayName, Mode=OneWay}" />
+                                <TextBlock
+                                    Grid.Column="3"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Bind EffectiveType, Mode=OneWay}" />
+                                <TextBlock
+                                    Grid.Column="4"
+                                    Margin="8,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Bind EffectiveSubtype, Mode=OneWay}" />
+                                <CheckBox
+                                    x:Name="HideCheckBox"
+                                    Grid.Column="5"
+                                    Margin="12,0,0,0"
+                                    VerticalAlignment="Center"
+                                    IsChecked="{x:Bind IsHidden, Mode=TwoWay}"
+                                    ToolTipService.ToolTip="{x:Bind HideTooltip}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="4">
+                    <TextBlock x:Name="DeviceDetailHeader" Style="{StaticResource SectionHeader}" />
+                    <TextBlock x:Name="EffectiveLabel" Style="{StaticResource FieldLabel}" />
+                    <TextBlock x:Name="EffectiveValueText" TextWrapping="Wrap" />
+                    <TextBlock x:Name="DevicePresetLabel" Style="{StaticResource FieldLabel}" />
+                    <ComboBox
+                        x:Name="DevicePresetCombo"
+                        HorizontalAlignment="Stretch"
+                        SelectionChanged="DevicePresetCombo_SelectionChanged" />
+                    <TextBlock x:Name="DeviceTypeLabel" Style="{StaticResource FieldLabel}" />
+                    <TextBox x:Name="DeviceTypeBox" />
+                    <TextBlock x:Name="DeviceSubtypeLabel" Style="{StaticResource FieldLabel}" />
+                    <TextBox x:Name="DeviceSubtypeBox" />
+                    <TextBlock x:Name="InstancePathLabel" Style="{StaticResource FieldLabel}" />
+                    <TextBox
+                        x:Name="InstancePathBox"
+                        IsReadOnly="True"
+                        TextWrapping="Wrap" />
+                    <TextBlock x:Name="HardwareIdsLabel" Style="{StaticResource FieldLabel}" />
+                    <TextBox
+                        x:Name="HardwareIdsBox"
+                        IsReadOnly="True"
+                        TextWrapping="Wrap" />
+                    <TextBlock x:Name="ShellNameLabel" Style="{StaticResource FieldLabel}" />
+                    <TextBox
+                        x:Name="ShellNameBox"
+                        IsReadOnly="True"
+                        TextWrapping="Wrap" />
+                    <TextBlock x:Name="DeviceRegistryPathLabel" Style="{StaticResource FieldLabel}" />
+                    <TextBox
+                        x:Name="DeviceRegistryPathBox"
+                        FontSize="12"
+                        IsReadOnly="True"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <Border
+            Grid.Row="3"
+            Padding="12,8"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            CornerRadius="8">
+            <StackPanel Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock
+                        x:Name="GlobalHeader"
+                        VerticalAlignment="Center"
+                        FontSize="15"
+                        FontWeight="SemiBold" />
+                    <TextBlock
+                        x:Name="GlobalRegistryPathText"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        IsTextSelectionEnabled="True"
+                        Opacity="0.7"
+                        TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.6*" MinWidth="180" />
+                        <ColumnDefinition Width="0.6*" MinWidth="64" />
+                        <ColumnDefinition Width="0.6*" MinWidth="64" />
+                        <ColumnDefinition Width="1.2*" MinWidth="120" />
+                        <ColumnDefinition Width="*" MinWidth="100" />
+                        <ColumnDefinition Width="*" MinWidth="100" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock x:Name="GlobalPresetLabel" Style="{StaticResource CompactLabel}" />
+                        <ComboBox
+                            x:Name="GlobalPresetCombo"
+                            HorizontalAlignment="Stretch"
+                            SelectionChanged="GlobalPresetCombo_SelectionChanged" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock x:Name="GlobalTypeLabel" Style="{StaticResource CompactLabel}" />
+                        <TextBox x:Name="GlobalTypeBox" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock x:Name="GlobalSubtypeLabel" Style="{StaticResource CompactLabel}" />
+                        <TextBox x:Name="GlobalSubtypeBox" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="3">
+                        <TextBlock x:Name="GlobalIdentifierLabel" Style="{StaticResource CompactLabel}" />
+                        <TextBox x:Name="GlobalIdentifierBox" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="4">
+                        <TextBlock x:Name="GlobalLayerJpnLabel" Style="{StaticResource CompactLabel}" />
+                        <TextBox x:Name="GlobalLayerJpnBox" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="5">
+                        <TextBlock x:Name="GlobalLayerKorLabel" Style="{StaticResource CompactLabel}" />
+                        <TextBox x:Name="GlobalLayerKorBox" />
+                    </StackPanel>
+                </Grid>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button x:Name="ApplyGlobalPresetButton" Click="ApplyGlobalPresetButton_Click" />
+                    <Button x:Name="ApplyGlobalButton" Click="ApplyGlobalButton_Click" />
+                    <Button x:Name="ClearGlobalButton" Click="ClearGlobalButton_Click" />
+                    <Button x:Name="OpenGlobalRegistryButton" Click="OpenGlobalRegistryButton_Click" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <TextBlock
+            x:Name="StatusText"
+            Grid.Row="4"
+            Opacity="0.85"
+            TextWrapping="Wrap" />
+    </Grid>
+</Page>

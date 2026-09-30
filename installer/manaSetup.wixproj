@@ -1,0 +1,32 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <!--
+    WiX v5 (NuGet SDK)。WiX のインストールは不要で、dotnet build だけでビルドできる。
+    使用許諾 RTF はカルチャごとに違うため、Build-Installer.ps1 が
+    Cultures と LicenseRtfFile を1カルチャずつ渡す。
+  -->
+  <PropertyGroup>
+    <OutputName>manaSetup</OutputName>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <Cultures Condition="'$(Cultures)' == ''">en-US</Cultures>
+    <PublishDir Condition="'$(PublishDir)' == ''">$(MSBuildProjectDirectory)\..\publish\win-x64\</PublishDir>
+    <LicenseRtfFile Condition="'$(LicenseRtfFile)' == ''">$(MSBuildProjectDirectory)\License\License.en-US.rtf</LicenseRtfFile>
+    <_LicenseRtfForWix>$([System.String]::Copy('$(LicenseRtfFile)').Replace('\','/'))</_LicenseRtfForWix>
+    <!--
+      ICE03: Windows App SDK の一部 DLL のバージョンリソースに MSI が受け付けない言語 ID 列が
+             入っているため File.Language で出る（インストール動作には影響しない）。
+      ICE43 / ICE57: perMachine（ALLUSERS=1）では ProgramMenuFolder は全ユーザー用になるが、
+             ICE はそれを考慮せずユーザープロファイル扱いで警告する（誤検知）。
+    -->
+    <SuppressIces>ICE03;ICE43;ICE57</SuppressIces>
+    <DefineConstants>PublishDir=$(PublishDir);AppIcon=$(MSBuildProjectDirectory)\..\Assets\AppIcon.ico;LicenseRtfFile=$(_LicenseRtfForWix)</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+  </ItemGroup>
+
+  <Target Name="CheckPublishOutput" BeforeTargets="Build">
+    <Error Condition="!Exists('$(PublishDir)mana.exe')"
+           Text="mana.exe not found in $(PublishDir). Run Build-Installer.ps1 (or publish.bat) first." />
+  </Target>
+</Project>

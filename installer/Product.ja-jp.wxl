@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="ja-JP" Codepage="932" xmlns="http://wixtoolset.org/schemas/v4/wxl">
+  <String Id="ProductLanguage" Value="1041" />
+  <String Id="ProductName" Value="キーボードレイアウト設定ツール まな" />
+  <String Id="ShortcutName" Value="キーボードレイアウト設定ツール まな" />
+  <String Id="ShortcutDescription" Value="ハードウェア キーボード レイアウト（i8042prt / デバイスごとのオーバーライド）の確認と変更" />
+  <String Id="DowngradeError" Value="新しいバージョンのキーボードレイアウト設定ツール まなが既にインストールされています。" />
+  <String Id="OsTooOld" Value="キーボードレイアウト設定ツール まなには 64 ビット版 Windows 11（ビルド 22000）以降が必要です。" />
+</WixLocalization>

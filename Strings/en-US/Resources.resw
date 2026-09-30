@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="AppTitle" xml:space="preserve"><value>mana as setting keyboard layout</value></data>
+  <data name="Button_Reload" xml:space="preserve"><value>Reload</value></data>
+  <data name="Button_OpenSettings" xml:space="preserve"><value>Open language settings</value></data>
+  <data name="Button_ShowHidden" xml:space="preserve"><value>Show hidden</value></data>
+  <data name="Button_HideHidden" xml:space="preserve"><value>Hide hidden</value></data>
+  <data name="Button_ApplyDevice" xml:space="preserve"><value>Apply device override</value></data>
+  <data name="Button_ClearDevice" xml:space="preserve"><value>Clear device override</value></data>
+  <data name="Button_ApplyGlobalPreset" xml:space="preserve"><value>Apply global preset</value></data>
+  <data name="Button_ApplyGlobal" xml:space="preserve"><value>Save global values</value></data>
+  <data name="Button_ClearGlobal" xml:space="preserve"><value>Clear global overrides</value></data>
+  <data name="Button_SaveHidden" xml:space="preserve"><value>Save visibility</value></data>
+
+  <data name="Section_Devices" xml:space="preserve"><value>Connected keyboards</value></data>
+  <data name="Section_DeviceDetail" xml:space="preserve"><value>Device override</value></data>
+  <data name="Section_Global" xml:space="preserve"><value>Global override (i8042prt)</value></data>
+  <data name="Section_Guidance" xml:space="preserve"><value>Before you start: set Hardware keyboard layout to “Use connected keyboard layout” under Settings → Time &amp; language → Language &amp; region → Japanese → Language options.</value></data>
+
+  <data name="Column_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Column_Layout" xml:space="preserve"><value>Layout</value></data>
+  <data name="Column_Source" xml:space="preserve"><value>Source</value></data>
+  <data name="Column_Type" xml:space="preserve"><value>Type</value></data>
+  <data name="Column_Subtype" xml:space="preserve"><value>Subtype</value></data>
+  <data name="Column_Hidden" xml:space="preserve"><value>Hidden</value></data>
+
+  <data name="Label_InstancePath" xml:space="preserve"><value>Device instance path</value></data>
+  <data name="Label_HardwareIds" xml:space="preserve"><value>Hardware IDs</value></data>
+  <data name="Label_Preset" xml:space="preserve"><value>Country / layout preset</value></data>
+  <data name="Label_Type" xml:space="preserve"><value>Type</value></data>
+  <data name="Label_Subtype" xml:space="preserve"><value>Subtype</value></data>
+  <data name="Label_Identifier" xml:space="preserve"><value>OverrideKeyboardIdentifier</value></data>
+  <data name="Label_LayerDriverJpn" xml:space="preserve"><value>LayerDriver JPN</value></data>
+  <data name="Label_LayerDriverKor" xml:space="preserve"><value>LayerDriver KOR</value></data>
+  <data name="Label_Effective" xml:space="preserve"><value>Effective</value></data>
+
+  <data name="Source_Device" xml:space="preserve"><value>Device</value></data>
+  <data name="Source_Global" xml:space="preserve"><value>Global</value></data>
+  <data name="Source_Auto" xml:space="preserve"><value>Auto-detect</value></data>
+
+  <data name="Preset_US101" xml:space="preserve"><value>Enhanced 101/102 (US)</value></data>
+  <data name="Preset_JapaneseJIS" xml:space="preserve"><value>Japanese (JIS)</value></data>
+  <data name="Preset_Korean101Type1" xml:space="preserve"><value>Korean 101 Type 1</value></data>
+  <data name="Preset_Korean101Type3" xml:space="preserve"><value>Korean 101 Type 3</value></data>
+  <data name="Preset_Custom" xml:space="preserve"><value>Custom</value></data>
+
+  <data name="Layout_AutoDetect" xml:space="preserve"><value>Auto-detect</value></data>
+  <data name="Layout_CustomFormat" xml:space="preserve"><value>Custom (Type={0}, Subtype={1})</value></data>
+
+  <data name="Status_LoadedFormat" xml:space="preserve"><value>Loaded {0} keyboard device(s).</value></data>
+  <data name="Status_DeviceApplied" xml:space="preserve"><value>Device override saved. Unplug/replug USB keyboards or reboot for built-in keyboards.</value></data>
+  <data name="Status_DeviceCleared" xml:space="preserve"><value>Device override cleared. Reconnect or reboot to apply.</value></data>
+  <data name="Status_GlobalPresetApplied" xml:space="preserve"><value>Global preset applied (including Identifier/LayerDriver as defined). Reboot required.</value></data>
+  <data name="Status_GlobalApplied" xml:space="preserve"><value>Global values saved. Reboot required.</value></data>
+  <data name="Status_GlobalCleared" xml:space="preserve"><value>Global overrides cleared. Reboot required.</value></data>
+  <data name="Status_ErrorFormat" xml:space="preserve"><value>Error: {0}</value></data>
+  <data name="Settings_Opened" xml:space="preserve"><value>Opened Language &amp; region settings. Open Japanese → Language options → Hardware keyboard layout.</value></data>
+  <data name="Settings_OpenFailed" xml:space="preserve"><value>Could not open Settings.</value></data>
+  <data name="Settings_OpenErrorFormat" xml:space="preserve"><value>Could not open Settings: {0}</value></data>
+  <data name="Button_RestartElevated" xml:space="preserve"><value>Restart as Administrator</value></data>
+  <data name="Status_NotElevated" xml:space="preserve"><value>Running without Administrator. You can view settings; writing to HKLM requires elevation.</value></data>
+  <data name="Status_Elevated" xml:space="preserve"><value>Running as Administrator. Registry writes are allowed.</value></data>
+  <data name="Status_ElevationNeeded" xml:space="preserve"><value>Administrator rights are required to write HKLM. Use “Restart as Administrator”.</value></data>
+  <data name="Status_ElevationCancelled" xml:space="preserve"><value>Elevation was cancelled.</value></data>
+</root>
