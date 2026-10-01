@@ -49,3 +49,5 @@ powershell -ExecutionPolicy Bypass -File installer\Build-Installer.ps1
 ```
 
 成果物は `installer\dist` です。内部バージョンは `mana.csproj` の `1.0.0`、配布ファイル名の版は `1.00` です。EV 証明書（Subject: Applet LLC）が無いときは署名を省略して続行します。
+
+`installer\manaSetup.wixproj`（WiX v5）は Visual Studio 標準では開けません（「互換性がありません」）。ソリューションには含めていません。コマンドラインの `Build-Installer.ps1` でビルドします。ソリューション上で開きたい場合は [HeatWave for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=FireGiant.FireGiantHeatWaveDev17) をインストールし、既存プロジェクトとして追加してください。リンク先の「Pre-MSBuild projects」とは別件です。

@@ -49,3 +49,5 @@ powershell -ExecutionPolicy Bypass -File installer\Build-Installer.ps1
 ```
 
 Output is `installer\dist`. The internal version in `mana.csproj` is `1.0.0`. Distribution file names use `1.00`. If the EV certificate (subject: Applet LLC) is not present, signing is skipped and the build continues.
+
+`installer\manaSetup.wixproj` (WiX v5) is not a project type Visual Studio loads by default ("incompatible"). It is not in the solution. Build it with `Build-Installer.ps1` from the command line. To edit it inside Visual Studio, install [HeatWave for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=FireGiant.FireGiantHeatWaveDev17) and add the project to the solution. This is unrelated to the "Pre-MSBuild projects" note on Microsoft Learn.

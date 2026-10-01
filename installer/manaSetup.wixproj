@@ -3,6 +3,11 @@
     WiX v5 (NuGet SDK)。WiX のインストールは不要で、dotnet build だけでビルドできる。
     使用許諾 RTF はカルチャごとに違うため、Build-Installer.ps1 が
     Cultures と LicenseRtfFile を1カルチャずつ渡す。
+
+    Visual Studio には標準の WiX プロジェクト タイプが無いため、mana.sln には含めない。
+    MSI は installer\Build-Installer.ps1（またはこの wixproj の dotnet build）で作る。
+    ソリューション エクスプローラーで編集したい場合は、FireGiant の HeatWave for VS2022 を入れ、
+    ソリューションへ既存プロジェクトとして追加する。
   -->
   <PropertyGroup>
     <OutputName>manaSetup</OutputName>
