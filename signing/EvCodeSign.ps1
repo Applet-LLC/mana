@@ -1,8 +1,13 @@
 # EV code signing for mana (USB token + subject name).
 #
-# Signs an explicit file list. Publish output DLLs are not included.
+# Signs an explicit file list (e.g. mana.exe, mana.dll, Install-mana.exe, MSI).
+# Publish output DLLs other than those listed are not included.
 # Multiple paths travel as one semicolon-delimited argument so powershell -File
 # does not bind extra tokens to the next parameter.
+#
+# signtool は呼び出し演算子 & で同期実行し、渡されたファイルを1回の起動でまとめて署名する。
+# 完了後、各ファイルの Authenticode が Valid になるまで確認してから戻る。
+# （Start-Process -ArgumentList は /fd などが欠落することがあるため使わない）
 #
 # Usage:
 #   .\EvCodeSign.ps1 -Files "C:\path\mana.exe;C:\path\Install-mana.exe"
@@ -14,6 +19,7 @@ $ErrorActionPreference = "Stop"
 
 $CertSubject = "Applet LLC"
 $TimestampUrl = "http://timestamp.globalsign.com/tsa/r45standard"
+$VerifyTimeout = [TimeSpan]::FromMinutes(10)
 
 function Get-SigntoolExe {
     $binRoot = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin"
@@ -32,6 +38,26 @@ function Get-SigntoolExe {
         return (Resolve-Path -LiteralPath $ack).Path
     }
     throw "signtool.exe not found under Windows Kits 10. Install the Windows SDK."
+}
+
+function Wait-AuthenticodeValid {
+    param(
+        [Parameter(Mandatory = $true)][string] $Path,
+        [Parameter(Mandatory = $true)][TimeSpan] $Timeout
+    )
+    $deadline = (Get-Date) + $Timeout
+    $lastStatus = $null
+    do {
+        $sig = Get-AuthenticodeSignature -LiteralPath $Path
+        $lastStatus = $sig.Status
+        if ($lastStatus -eq "Valid") {
+            Write-Host "  verified: $(Split-Path $Path -Leaf) (Valid)"
+            return
+        }
+        Start-Sleep -Milliseconds 500
+    } while ((Get-Date) -lt $deadline)
+
+    throw "Timed out waiting for Authenticode Valid on '$Path' (last status: $lastStatus)."
 }
 
 function Invoke-EvSign {
@@ -58,20 +84,22 @@ function Invoke-EvSign {
         "/td", "sha256",
         "/fd", "sha256"
     )
-    $chunkSize = 40
-    Write-Host "Signing $($Paths.Count) file(s) with signtool..."
-    for ($i = 0; $i -lt $Paths.Count; $i += $chunkSize) {
-        $take = [Math]::Min($chunkSize, $Paths.Count - $i)
-        $chunk = $Paths[$i..($i + $take - 1)]
-        $batchNo = [int]($i / $chunkSize) + 1
-        $batches = [int][Math]::Ceiling($Paths.Count / $chunkSize)
-        Write-Host "  batch $batchNo / $batches ($($chunk.Count) file(s))"
-        $toolArgs = $baseArgs + $chunk
-        & $signtool @toolArgs
-        if ($LASTEXITCODE -ne 0) {
-            throw "signtool failed with exit code $LASTEXITCODE"
-        }
+
+    $names = @($Paths | ForEach-Object { Split-Path $_ -Leaf })
+    Write-Host "Signing $($Paths.Count) file(s) in one signtool invocation: $($names -join ', ')"
+    # 複数ファイルを一度に渡す（トークン PIN も1回）。& で同期実行し、/fd 欠落を避ける。
+    $toolArgs = $baseArgs + $Paths
+    & $signtool @toolArgs
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -ne 0) {
+        throw "signtool failed with exit code $exitCode for: $($names -join ', ')."
     }
+
+    Write-Host "Verifying Authenticode on $($Paths.Count) file(s)..."
+    foreach ($path in $Paths) {
+        Wait-AuthenticodeValid -Path $path -Timeout $VerifyTimeout
+    }
+    Write-Host "All $($Paths.Count) file(s) signed and verified."
 }
 
 if ($Files -eq "") {

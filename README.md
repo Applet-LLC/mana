@@ -12,8 +12,8 @@ Windows 11 で、接続中のキーボードのハードウェア配列（Type /
 
 配布フォルダの `Install-mana.exe` を実行します。画面で日本語または English を選び、インストールします。
 
-- 日本語: `manaSetup.ja-JP.msi`
-- English: `manaSetup.en-US.msi`
+- 日本語: `manaSetup-1.00-ja-JP.msi`
+- English: `manaSetup-1.00-en-US.msi`
 
 `Install-mana.exe` と同じフォルダに、選んだ言語の MSI が必要です。インストール先は `C:\Program Files\mana` です。スタートメニューには **Applet** グループの中へ「キーボードレイアウト設定ツール まな」が登録されます。
 
@@ -36,18 +36,6 @@ Windows 11 で、接続中のキーボードのハードウェア配列（Type /
 
 ## 開発者向け
 
-ビルドには Visual Studio 2022 の MSBuild が必要です（`dotnet build` だけでは WinUI の PRI 生成に失敗することがあります）。
-
-```bat
-publish.bat
-```
-
-出力は `publish\win-x64\mana.exe` です。インストーラー、言語セレクター、EV 署名までまとめて作る場合:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File installer\Build-Installer.ps1
-```
+Visual Studio 2022 でソリューションを一括ビルドできます（アプリ、言語セレクター、インストーラー、EV 署名まで）。`manaSetup`（WiX v5）には [HeatWave for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=FireGiant.FireGiantHeatWaveDev17) が必要です。
 
 成果物は `installer\dist` です。内部バージョンは `mana.csproj` の `1.0.0`、配布ファイル名の版は `1.00` です。EV 証明書（Subject: Applet LLC）が無いときは署名を省略して続行します。
-
-`installer\manaSetup.wixproj`（WiX v5）は Visual Studio 標準では開けません（「互換性がありません」）。ソリューションには含めていません。コマンドラインの `Build-Installer.ps1` でビルドします。ソリューション上で開きたい場合は [HeatWave for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=FireGiant.FireGiantHeatWaveDev17) をインストールし、既存プロジェクトとして追加してください。リンク先の「Pre-MSBuild projects」とは別件です。

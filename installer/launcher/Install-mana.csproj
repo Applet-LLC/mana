@@ -24,4 +24,18 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>..\..\Assets\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <!-- 配布用の dist へは Publish（単一ファイル）のときだけコピーする。通常 Build の apphost 単体では動かない。 -->
+  <Target Name="CopyLauncherToDist" AfterTargets="Publish">
+    <PropertyGroup>
+      <_DistDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\dist'))\</_DistDir>
+      <_LauncherExe Condition="'$(PublishDir)' != ''">$([System.IO.Path]::GetFullPath('$(PublishDir)'))\$(AssemblyName).exe</_LauncherExe>
+      <_LauncherExe Condition="'$(_LauncherExe)' == '' or !Exists('$(_LauncherExe)')">$(TargetDir)$(AssemblyName).exe</_LauncherExe>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(_LauncherExe)')"
+           Text="Install-mana.exe not found at $(_LauncherExe)." />
+    <MakeDir Directories="$(_DistDir)" />
+    <Copy SourceFiles="$(_LauncherExe)" DestinationFiles="$(_DistDir)Install-mana.exe" OverwriteReadOnlyFiles="true" />
+    <Message Importance="high" Text="Install-mana: copied $(_LauncherExe) → $(_DistDir)Install-mana.exe" />
+  </Target>
 </Project>

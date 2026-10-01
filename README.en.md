@@ -12,8 +12,8 @@ Source code is under the [MIT License](LICENSE). Use of the signed installer and
 
 Run `Install-mana.exe` from the distribution folder. Choose Japanese or English, then install.
 
-- Japanese: `manaSetup.ja-JP.msi`
-- English: `manaSetup.en-US.msi`
+- Japanese: `manaSetup-1.00-ja-JP.msi`
+- English: `manaSetup-1.00-en-US.msi`
 
 The MSI for the language you choose must sit in the same folder as `Install-mana.exe`. Files are installed to `C:\Program Files\mana`. The Start menu shortcut is created inside the **Applet** group, named "mana as setting keyboard layout".
 
@@ -36,18 +36,6 @@ If startup fails, see `%LocalAppData%\mana\startup-crash.log`. UI language and w
 
 ## Building
 
-Building needs Visual Studio 2022 MSBuild. `dotnet build` alone can fail to generate WinUI PRI resources.
-
-```bat
-publish.bat
-```
-
-That writes `publish\win-x64\mana.exe`. To build both installers, the language selector, and EV signatures:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File installer\Build-Installer.ps1
-```
+You can build the whole solution in Visual Studio 2022 (app, language selector, installers, and EV signing). `manaSetup` (WiX v5) requires [HeatWave for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=FireGiant.FireGiantHeatWaveDev17).
 
 Output is `installer\dist`. The internal version in `mana.csproj` is `1.0.0`. Distribution file names use `1.00`. If the EV certificate (subject: Applet LLC) is not present, signing is skipped and the build continues.
-
-`installer\manaSetup.wixproj` (WiX v5) is not a project type Visual Studio loads by default ("incompatible"). It is not in the solution. Build it with `Build-Installer.ps1` from the command line. To edit it inside Visual Studio, install [HeatWave for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=FireGiant.FireGiantHeatWaveDev17) and add the project to the solution. This is unrelated to the "Pre-MSBuild projects" note on Microsoft Learn.

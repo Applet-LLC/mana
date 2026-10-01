@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.Build.NoTargets/3.7.56">
+  <!--
+    mana.exe / mana.dll / Install-mana.exe に EV 署名し、Install-mana.exe を installer\dist へコピーする。
+    ソリューションの一括ビルド対象外。VS ではこのプロジェクトを右クリック → ビルド。
+    前提: publish.bat（または Publish）と Install-mana のビルド（または publish）が済んでいること。
+
+    署名は EvCodeSign.ps1 が signtool 完了＋Authenticode Valid まで待ってから戻る。
+    こちらの Exec も powershell 終了コードを待ってから dist へコピーする。
+  -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <SignScript>$(MSBuildProjectDirectory)\EvCodeSign.ps1</SignScript>
+    <RepoRoot>$(MSBuildProjectDirectory)\..\</RepoRoot>
+    <InstallerDir>$(RepoRoot)installer\</InstallerDir>
+    <DistDir>$(InstallerDir)dist\</DistDir>
+    <PublishDir>$(RepoRoot)publish\win-x64\</PublishDir>
+    <AppExe>$(PublishDir)mana.exe</AppExe>
+    <AppDll>$(PublishDir)mana.dll</AppDll>
+    <LauncherDir>$(InstallerDir)launcher\bin\</LauncherDir>
+  </PropertyGroup>
+
+  <Target Name="SignBinaries" AfterTargets="Build">
+    <Error Condition="!Exists('$(AppExe)')"
+           Text="mana.exe not found: $(AppExe). Run publish.bat (or Publish mana) first." />
+    <Error Condition="!Exists('$(AppDll)')"
+           Text="mana.dll not found: $(AppDll). Run publish.bat (or Publish mana) first." />
+
+    <!-- 配布用は publish の単一ファイルを優先。無ければ候補のうち最も大きい（≒単一ファイル）ものを使う。 -->
+    <Exec ConsoleToMSBuild="true"
+          StandardOutputImportance="low"
+          Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;$ErrorActionPreference='Stop'; $publish='$(LauncherDir)Release\net9.0-windows\win-x64\publish\Install-mana.exe'; if (Test-Path -LiteralPath $publish) { Write-Output (Resolve-Path -LiteralPath $publish).Path; exit 0 }; $c=@('$(LauncherDir)x64\Release\net9.0-windows\win-x64\Install-mana.exe','$(LauncherDir)Release\net9.0-windows\win-x64\Install-mana.exe'); $f=$c | Where-Object { Test-Path -LiteralPath $_ } | ForEach-Object { Get-Item -LiteralPath $_ } | Sort-Object Length -Descending | Select-Object -First 1; if ($null -eq $f) { throw 'Install-mana.exe not found under launcher\bin. Publish Install-mana (single-file) first.' }; Write-Output $f.FullName&quot;">
+      <Output TaskParameter="ConsoleOutput" ItemName="_LauncherResolved" />
+    </Exec>
+    <PropertyGroup>
+      <LauncherExe>@(_LauncherResolved)</LauncherExe>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_SignFile Include="$(AppExe)" />
+      <_SignFile Include="$(AppDll)" />
+      <_SignFile Include="$(LauncherExe)" />
+    </ItemGroup>
+
+    <Message Importance="high" Text="mana.Sign.Binaries: signing @(_SignFile->'%(Filename)%(Extension)', ', ') in one signtool run (waiting until finished)..." />
+    <Message Importance="high" Text="mana.Sign.Binaries: Install-mana.exe = $(LauncherExe)" />
+
+    <!-- cmd /c で powershell の終了を待ち、ERRORLEVEL を MSBuild に渡す -->
+    <Exec Command="cmd /c powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(SignScript)&quot; -Files &quot;@(_SignFile->'%(Identity)', ';')&quot; &amp; exit /b %25ERRORLEVEL%"
+          LogStandardErrorAsError="true" />
+
+    <Message Importance="high" Text="mana.Sign.Binaries: signing finished; copying Install-mana.exe to dist" />
+    <MakeDir Directories="$(DistDir)" />
+    <Copy SourceFiles="$(LauncherExe)" DestinationFiles="$(DistDir)Install-mana.exe" OverwriteReadOnlyFiles="true" />
+    <Message Importance="high" Text="mana.Sign.Binaries: copied Install-mana.exe to $(DistDir)" />
+  </Target>
+</Project>

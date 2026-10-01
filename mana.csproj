@@ -32,6 +32,24 @@
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
   </PropertyGroup>
 
+  <!--
+    unpackaged WinUI は mana.pri と *.xbf が exe と同じフォルダに無いと
+    ms-appx:///MainWindow.xaml の解決に失敗する。Publish 直後に必ず検証する。
+  -->
+  <Target Name="VerifyWinUiPublishOutput" AfterTargets="Publish">
+    <PropertyGroup>
+      <_Pub>$([MSBuild]::EnsureTrailingSlash('$(PublishDir)'))</_Pub>
+    </PropertyGroup>
+    <ItemGroup>
+      <_RequiredWinUiPub Include="$(_Pub)mana.pri" />
+      <_RequiredWinUiPub Include="$(_Pub)App.xbf" />
+      <_RequiredWinUiPub Include="$(_Pub)MainWindow.xbf" />
+      <_RequiredWinUiPub Include="$(_Pub)MainPage.xbf" />
+    </ItemGroup>
+    <Error Condition="!Exists('%(_RequiredWinUiPub.Identity)')"
+           Text="WinUI resource missing after Publish: %(_RequiredWinUiPub.Identity). Use Visual Studio MSBuild Publish (publish.bat), not a partial copy of publish\win-x64." />
+  </Target>
+
   <ItemGroup>
     <Content Include="Assets\AppIcon.ico" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
