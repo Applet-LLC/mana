@@ -1,3 +1,4 @@
+using System.Text;
 using Mana.Services;
 using Markdig;
 using Microsoft.UI.Xaml;
@@ -17,6 +18,8 @@ public sealed partial class KeyboardDetailWindow : Window
     private string _savedMemo = string.Empty;
     private bool _webViewReady;
     private bool _closingHandled;
+    private bool _viewMode = true;
+    private string? _memoPreviewHtmlPath;
 
     public KeyboardDetailWindow(
         string instancePath,
@@ -64,9 +67,15 @@ public sealed partial class KeyboardDetailWindow : Window
 
         _savedMemo = KeyboardNoteStore.LoadMemo(_instancePath);
         MemoEditBox.Text = _savedMemo;
-        MemoPivot.SelectedIndex = 0;
+        ApplyMemoMode(viewMode: true);
 
-        Activated += async (_, _) => await EnsureWebViewAsync();
+        Activated += async (_, _) =>
+        {
+            if (_viewMode)
+            {
+                await ShowMemoViewAsync();
+            }
+        };
         AppWindow.Closing += AppWindow_Closing;
         Closed += KeyboardDetailWindow_Closed;
     }
@@ -75,9 +84,32 @@ public sealed partial class KeyboardDetailWindow : Window
     {
         DriverStackLabel.Text = Localization.Get("Label_DriverStack");
         MemoLabel.Text = Localization.Get("Label_Memo");
-        ViewPivotItem.Header = Localization.Get("Tab_MemoView");
-        EditPivotItem.Header = Localization.Get("Tab_MemoEdit");
+        ViewModeButton.Content = Localization.Get("Tab_MemoView");
+        EditModeButton.Content = Localization.Get("Tab_MemoEdit");
         OpenFolderButton.Content = Localization.Get("Button_OpenFolder");
+    }
+
+    private void ApplyMemoMode(bool viewMode)
+    {
+        _viewMode = viewMode;
+        MemoWebView.Visibility = viewMode ? Visibility.Visible : Visibility.Collapsed;
+        MemoViewFallbackBox.Visibility = Visibility.Collapsed;
+        MemoEditBox.Visibility = viewMode ? Visibility.Collapsed : Visibility.Visible;
+        ViewModeButton.IsEnabled = !viewMode;
+        EditModeButton.IsEnabled = viewMode;
+    }
+
+    private async void ViewModeButton_Click(object sender, RoutedEventArgs e)
+    {
+        PersistMemoIfNeeded(forceAllow: true);
+        ApplyMemoMode(viewMode: true);
+        await ShowMemoViewAsync();
+    }
+
+    private void EditModeButton_Click(object sender, RoutedEventArgs e)
+    {
+        PersistMemoIfNeeded(forceAllow: true);
+        ApplyMemoMode(viewMode: false);
     }
 
     private void BuildStackRow()
@@ -253,53 +285,61 @@ public sealed partial class KeyboardDetailWindow : Window
         }
     }
 
-    private async Task EnsureWebViewAsync()
+    private async Task ShowMemoViewAsync()
     {
-        if (_webViewReady)
-        {
-            await RenderMemoViewAsync();
-            return;
-        }
-
-        try
-        {
-            await MemoWebView.EnsureCoreWebView2Async();
-            _webViewReady = true;
-            await RenderMemoViewAsync();
-        }
-        catch
-        {
-            // WebView2 runtime missing: leave blank; edit tab still works.
-        }
-    }
-
-    private async Task RenderMemoViewAsync()
-    {
-        if (!_webViewReady || MemoWebView.CoreWebView2 is null)
-        {
-            return;
-        }
-
         var markdown = MemoEditBox.Text ?? string.Empty;
         var htmlBody = Markdown.ToHtml(markdown, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
         var html =
             "<!DOCTYPE html><html><head><meta charset=\"utf-8\"/>" +
             "<style>" +
-            "body { font-family: 'Segoe UI', sans-serif; font-size: 14px; margin: 12px; color: #1a1a1a; background: #fafafa; }" +
+            "body { font-family: 'Segoe UI', 'Yu Gothic UI', 'Meiryo UI', sans-serif; font-size: 14px; margin: 12px; color: #1a1a1a; background: #fafafa; }" +
             "pre { background: #f0f0f0; padding: 8px; overflow-x: auto; }" +
             "code { font-family: Consolas, monospace; }" +
             "a { color: #0067c0; }" +
             "</style></head><body>" + htmlBody + "</body></html>";
-        MemoWebView.NavigateToString(html);
-        await Task.CompletedTask;
+
+        try
+        {
+            // レイアウト確定後に初期化（Visibility 切替直後の 0 サイズを避ける）
+            await Task.Delay(1);
+            if (MemoWebView.ActualHeight < 1)
+            {
+                await Task.Delay(50);
+            }
+
+            if (!_webViewReady || MemoWebView.CoreWebView2 is null)
+            {
+                await MemoWebView.EnsureCoreWebView2Async();
+                _webViewReady = MemoWebView.CoreWebView2 is not null;
+            }
+
+            if (!_webViewReady || MemoWebView.CoreWebView2 is null)
+            {
+                ShowMemoFallback(markdown);
+                return;
+            }
+
+            // data URI / NavigateToString より file:// の方が WinUI WebView2 で安定する
+            _memoPreviewHtmlPath ??= System.IO.Path.Combine(
+                System.IO.Path.GetTempPath(),
+                "mana-memo-preview-" + Guid.NewGuid().ToString("N") + ".html");
+            await File.WriteAllTextAsync(_memoPreviewHtmlPath, html, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+            MemoWebView.CoreWebView2.Navigate(new Uri(_memoPreviewHtmlPath).AbsoluteUri);
+            MemoWebView.Visibility = Visibility.Visible;
+            MemoViewFallbackBox.Visibility = Visibility.Collapsed;
+        }
+        catch
+        {
+            _webViewReady = false;
+            ShowMemoFallback(markdown);
+        }
     }
 
-    private async void MemoPivot_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void ShowMemoFallback(string markdown)
     {
-        if (MemoPivot.SelectedIndex == 0)
-        {
-            await EnsureWebViewAsync();
-        }
+        MemoWebView.Visibility = Visibility.Collapsed;
+        MemoViewFallbackBox.Text = markdown;
+        MemoViewFallbackBox.Visibility = Visibility.Visible;
     }
 
     private void OpenFolderButton_Click(object sender, RoutedEventArgs e)
@@ -318,16 +358,33 @@ public sealed partial class KeyboardDetailWindow : Window
         {
             PersistMemoIfNeeded();
         }
+
+        if (!string.IsNullOrEmpty(_memoPreviewHtmlPath))
+        {
+            try
+            {
+                File.Delete(_memoPreviewHtmlPath);
+            }
+            catch
+            {
+            }
+
+            _memoPreviewHtmlPath = null;
+        }
     }
 
-    private void PersistMemoIfNeeded()
+    private void PersistMemoIfNeeded(bool forceAllow = false)
     {
-        if (_closingHandled)
+        if (_closingHandled && !forceAllow)
         {
             return;
         }
 
-        _closingHandled = true;
+        if (!forceAllow)
+        {
+            _closingHandled = true;
+        }
+
         var current = MemoEditBox.Text ?? string.Empty;
         if (!string.Equals(current, _savedMemo, StringComparison.Ordinal))
         {

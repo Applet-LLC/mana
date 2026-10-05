@@ -83,24 +83,39 @@ $cultures = @(
 )
 New-Item -ItemType Directory -Force $distDir | Out-Null
 # Install-mana.exe は mana.Sign.Binaries が署名後に dist へコピーする
-Copy-Item (Join-Path $projectDir 'README.md') (Join-Path $distDir 'README.md') -Force
-Copy-Item (Join-Path $projectDir 'README.en.md') (Join-Path $distDir 'README.en.md') -Force
+# README / License は mana.Sign.Msi の StageDistDocs でも同期するが、CLI 単体実行時も揃える
+$distDocs = @(
+    (Join-Path $projectDir 'README.md'),
+    (Join-Path $projectDir 'README.en.md'),
+    (Join-Path $installerDir 'License\License.en-US.rtf'),
+    (Join-Path $installerDir 'License\License.ja-JP.rtf')
+)
+foreach ($doc in $distDocs) {
+    if (-not (Test-Path -LiteralPath $doc)) { throw "Distribution doc missing: $doc" }
+    Copy-Item -LiteralPath $doc -Destination (Join-Path $distDir (Split-Path $doc -Leaf)) -Force
+    Write-Host "Staged doc: $(Split-Path $doc -Leaf)"
+}
 
 # 次のカルチャのビルドが bin を掃除することがあるので、できた MSI はすぐ版付き名で dist へ退避する。
 # WiX 増分 CAB が古いまま残らないよう、各カルチャは Rebuild する（wixproj 側でも中間出力を破棄する）。
 foreach ($culture in $cultures) {
     if (-not (Test-Path $culture.Rtf)) { throw "License RTF not found: $($culture.Rtf)" }
+    # SkipOtherCulture: このスクリプトが両カルチャを順にビルドするため、wixproj 側の連鎖ビルドは不要
     & dotnet msbuild (Join-Path $installerDir 'manaSetup.wixproj') `
         -t:Rebuild `
         -p:Configuration=Release `
         "-p:PublishDir=$publishDir\" `
         "-p:Cultures=$($culture.Name)" `
         "-p:LicenseRtfFile=$($culture.Rtf)" `
+        -p:SkipOtherCulture=true `
         -nologo -v:m
     if ($LASTEXITCODE -ne 0) { throw "Installer build failed for $($culture.Name) ($LASTEXITCODE)." }
 
     $built = Join-Path $installerDir "bin\Release\$($culture.Name)\manaSetup.msi"
-    if (-not (Test-Path $built)) { throw "MSI for $($culture.Name) not found at $built." }
+    if (-not (Test-Path $built)) {
+        $built = Join-Path $installerDir "bin\x64\Release\$($culture.Name)\manaSetup.msi"
+    }
+    if (-not (Test-Path $built)) { throw "MSI for $($culture.Name) not found under installer\bin." }
 
     # 収穫が古い CAB のままだと署名後の dll サイズと一致しない
     $pubDllLen = (Get-Item $appDll).Length
@@ -117,3 +132,7 @@ if ($LASTEXITCODE -ne 0) { throw "MSI code signing failed ($LASTEXITCODE)." }
 Write-Host "Created: $(Join-Path $distDir 'Install-mana.exe')"
 Write-Host "Created: $(Join-Path $distDir 'manaSetup-1.00-en-US.msi')"
 Write-Host "Created: $(Join-Path $distDir 'manaSetup-1.00-ja-JP.msi')"
+Write-Host "Created: $(Join-Path $distDir 'README.md')"
+Write-Host "Created: $(Join-Path $distDir 'README.en.md')"
+Write-Host "Created: $(Join-Path $distDir 'License.en-US.rtf')"
+Write-Host "Created: $(Join-Path $distDir 'License.ja-JP.rtf')"

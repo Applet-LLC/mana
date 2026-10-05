@@ -12,6 +12,10 @@ Project("{B7DD6F7E-DEF8-4E67-B5B7-07EF123DB6F0}") = "manaSetup", "installer\mana
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mana.Sign.Binaries", "signing\mana.Sign.Binaries.csproj", "{A1B2C3D4-E5F6-4789-A012-3456789ABCDE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2EE38B75-221C-45CB-52C8-D41225D39C6D} = {2EE38B75-221C-45CB-52C8-D41225D39C6D}
+		{4B8E1C2A-6F47-4D91-9E3B-1A7C5D8E0F21} = {4B8E1C2A-6F47-4D91-9E3B-1A7C5D8E0F21}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mana.Sign.Msi", "signing\mana.Sign.Msi.csproj", "{B2C3D4E5-F6A7-4890-B123-456789ABCDEF}"
 	ProjectSection(ProjectDependencies) = postProject

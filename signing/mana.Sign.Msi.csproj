@@ -1,44 +1,49 @@
 <Project Sdk="Microsoft.Build.NoTargets/3.7.56">
   <!--
     英語版・日本語版 MSI に EV 署名する（成果物は版付きファイル名のみ）。
-    ソリューションの一括ビルド対象外。VS ではこのプロジェクトを右クリック → ビルド。
-
-    入力: installer\bin\Release\{culture}\manaSetup.msi（あれば）または
-          dist の版付き MSI / 旧無版付き名。
-    出力: installer\dist\manaSetup-1.00-{culture}.msi のみ（無版付き名は削除）。
+    VS(x64) は installer\bin\x64\Release\{culture}\、CLI は bin\Release\{culture}\ に出す。
+    更新日時が新しい方を選ぶ（古い bin\Release の残骸を優先しない）。
   -->
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <EnableDefaultItems>false</EnableDefaultItems>
     <SignScript>$(MSBuildProjectDirectory)\EvCodeSign.ps1</SignScript>
-    <InstallerDir>$(MSBuildProjectDirectory)\..\installer\</InstallerDir>
-    <DistDir>$(InstallerDir)dist\</DistDir>
+    <ResolveMsiScript>$(MSBuildProjectDirectory)\Resolve-MsiForSign.ps1</ResolveMsiScript>
+    <!-- 末尾 \ は powershell -File の "..." を壊すため付けない -->
+    <InstallerDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\installer'))</InstallerDir>
+    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..'))</RepoRoot>
+    <DistDir>$(InstallerDir)\dist</DistDir>
     <DisplayVersion>1.00</DisplayVersion>
-    <MsiEnUs>$(DistDir)manaSetup-$(DisplayVersion)-en-US.msi</MsiEnUs>
-    <MsiJaJp>$(DistDir)manaSetup-$(DisplayVersion)-ja-JP.msi</MsiJaJp>
-    <LegacyEnUs>$(DistDir)manaSetup.en-US.msi</LegacyEnUs>
-    <LegacyJaJp>$(DistDir)manaSetup.ja-JP.msi</LegacyJaJp>
-    <BuiltEnUs>$(InstallerDir)bin\Release\en-US\manaSetup.msi</BuiltEnUs>
-    <BuiltJaJp>$(InstallerDir)bin\Release\ja-JP\manaSetup.msi</BuiltJaJp>
+    <MsiEnUs>$(DistDir)\manaSetup-$(DisplayVersion)-en-US.msi</MsiEnUs>
+    <MsiJaJp>$(DistDir)\manaSetup-$(DisplayVersion)-ja-JP.msi</MsiJaJp>
   </PropertyGroup>
 
-  <Target Name="SignMsis" AfterTargets="Build">
+  <!--
+    配布ドキュメントを dist へ同期（Clean では消さない。ソース更新時は上書きで最新にする）。
+    README はリポジトリルート、License は installer\License（プロジェクト相対）。
+  -->
+  <Target Name="StageDistDocs">
+    <ItemGroup>
+      <_DistDoc Include="$(RepoRoot)\README.md" />
+      <_DistDoc Include="$(RepoRoot)\README.en.md" />
+      <_DistDoc Include="$(InstallerDir)\License\License.en-US.rtf" />
+      <_DistDoc Include="$(InstallerDir)\License\License.ja-JP.rtf" />
+    </ItemGroup>
+    <Error Condition="!Exists('%(_DistDoc.Identity)')"
+           Text="Distribution doc missing: %(_DistDoc.Identity)" />
     <MakeDir Directories="$(DistDir)" />
+    <Copy SourceFiles="@(_DistDoc)" DestinationFolder="$(DistDir)" SkipUnchangedFiles="false" OverwriteReadOnlyFiles="true" />
+    <Message Importance="high" Text="mana.Sign.Msi: staged docs @(_DistDoc->'%(Filename)%(Extension)', ', ') → $(DistDir)" />
+  </Target>
 
-    <!-- bin → 版付き。無ければ旧無版付き名を版付きへリネーム相当でコピー。 -->
-    <Copy SourceFiles="$(BuiltEnUs)" DestinationFiles="$(MsiEnUs)" OverwriteReadOnlyFiles="true"
-          Condition="Exists('$(BuiltEnUs)')" />
-    <Copy SourceFiles="$(BuiltJaJp)" DestinationFiles="$(MsiJaJp)" OverwriteReadOnlyFiles="true"
-          Condition="Exists('$(BuiltJaJp)')" />
-    <Copy SourceFiles="$(LegacyEnUs)" DestinationFiles="$(MsiEnUs)" OverwriteReadOnlyFiles="true"
-          Condition="!Exists('$(MsiEnUs)') AND Exists('$(LegacyEnUs)')" />
-    <Copy SourceFiles="$(LegacyJaJp)" DestinationFiles="$(MsiJaJp)" OverwriteReadOnlyFiles="true"
-          Condition="!Exists('$(MsiJaJp)') AND Exists('$(LegacyJaJp)')" />
+  <Target Name="SignMsis" AfterTargets="Build" DependsOnTargets="StageDistDocs">
+    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(ResolveMsiScript)&quot; -InstallerDir &quot;$(InstallerDir)&quot; -DistDir &quot;$(DistDir)&quot; -DisplayVersion &quot;$(DisplayVersion)&quot;"
+          LogStandardErrorAsError="true" />
 
     <Error Condition="!Exists('$(MsiEnUs)')"
-           Text="MSI not found: $(MsiEnUs). Build manaSetup for en-US (Cultures=en-US) first." />
+           Text="MSI not found: $(MsiEnUs). Build manaSetup for en-US first." />
     <Error Condition="!Exists('$(MsiJaJp)')"
-           Text="MSI not found: $(MsiJaJp). Build manaSetup for ja-JP (Cultures=ja-JP) first." />
+           Text="MSI not found: $(MsiJaJp). Build manaSetup for ja-JP first." />
 
     <ItemGroup>
       <_SignFile Include="$(MsiEnUs)" />
@@ -46,10 +51,20 @@
     </ItemGroup>
 
     <Message Importance="high" Text="mana.Sign.Msi: signing @(_SignFile->'%(Filename)%(Extension)', ', ') in one signtool run..." />
-    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(SignScript)&quot; -Files &quot;@(_SignFile->'%(Identity)', ';')&quot;" />
+    <Exec Command="cmd /c powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(SignScript)&quot; -Files &quot;@(_SignFile->'%(Identity)', ';')&quot; &amp; exit /b %25ERRORLEVEL%"
+          LogStandardErrorAsError="true" />
 
-    <Delete Files="$(LegacyEnUs)" Condition="Exists('$(LegacyEnUs)')" />
-    <Delete Files="$(LegacyJaJp)" Condition="Exists('$(LegacyJaJp)')" />
+    <Delete Files="$(DistDir)\manaSetup.en-US.msi" Condition="Exists('$(DistDir)\manaSetup.en-US.msi')" />
+    <Delete Files="$(DistDir)\manaSetup.ja-JP.msi" Condition="Exists('$(DistDir)\manaSetup.ja-JP.msi')" />
     <Message Importance="high" Text="mana.Sign.Msi: distribution MSI are $(MsiEnUs) and $(MsiJaJp)" />
+  </Target>
+
+  <Target Name="CleanDist" AfterTargets="Clean">
+    <ItemGroup>
+      <_DistClean Include="$(DistDir)\*.msi" />
+      <_DistClean Include="$(DistDir)\Install-mana.exe" />
+    </ItemGroup>
+    <Delete Files="@(_DistClean)" TreatErrorsAsWarnings="true" />
+    <Message Importance="high" Text="mana.Sign.Msi: cleaned distribution artifacts in $(DistDir)" Condition="'@(_DistClean)' != ''" />
   </Target>
 </Project>

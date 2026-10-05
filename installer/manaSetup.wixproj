@@ -1,9 +1,9 @@
 <Project Sdk="WixToolset.Sdk/5.0.2">
   <!--
     WiX v5 (NuGet SDK)。WiX のインストールは不要で、dotnet build だけでビルドできる。
-    使用許諾 RTF はカルチャごとに違う。Build-Installer.ps1 は Cultures と LicenseRtfFile を
-    1カルチャずつ渡す。VS（HeatWave）ではプロジェクトの Cultures / LicenseRtfFile を切り替えて
-    en-US と ja-JP をそれぞれビルドする。
+    使用許諾 RTF はカルチャごとに違う。既定では en-US をビルドしたあと ja-JP も続けてビルドし、
+    版付き名で dist へ退避する（次カルチャの Purge で bin が消えるため）。
+    Build-Installer.ps1 はカルチャを1つずつ渡すので SkipOtherCulture=true を付ける。
   -->
   <PropertyGroup>
     <OutputName>manaSetup</OutputName>
@@ -12,6 +12,9 @@
     <PublishDir Condition="'$(PublishDir)' == ''">$(MSBuildProjectDirectory)\..\publish\win-x64\</PublishDir>
     <LicenseRtfFile Condition="'$(LicenseRtfFile)' == ''">$(MSBuildProjectDirectory)\License\License.en-US.rtf</LicenseRtfFile>
     <_LicenseRtfForWix>$([System.String]::Copy('$(LicenseRtfFile)').Replace('\','/'))</_LicenseRtfForWix>
+    <DisplayVersion>1.00</DisplayVersion>
+    <!-- 末尾 \ は付けない（powershell / 結合ミス防止）。Clean でも同じパスを使う -->
+    <DistDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\dist'))</DistDir>
     <!--
       ICE03: Windows App SDK の一部 DLL のバージョンリソースに MSI が受け付けない言語 ID 列が
              入っているため File.Language で出る（インストール動作には影響しない）。
@@ -20,6 +23,8 @@
     -->
     <SuppressIces>ICE03;ICE43;ICE57</SuppressIces>
     <DefineConstants>PublishDir=$(PublishDir);AppIcon=$(MSBuildProjectDirectory)\..\Assets\AppIcon.ico;LicenseRtfFile=$(_LicenseRtfForWix)</DefineConstants>
+    <!-- VS の Fast Up-to-date がスキップすると古い CAB のままになるため無効化 -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
 
   <ItemGroup>
@@ -57,7 +62,50 @@
            Text="mana.pri not found in $(_Pub). Without it the installed app fails with XAML parsing / ms-appx MainWindow.xaml. Re-run publish.bat with VS MSBuild, then mana.Sign.Binaries, then rebuild this MSI." />
     <Error Condition="!Exists('$(_Pub)MainWindow.xbf')"
            Text="MainWindow.xbf not found in $(_Pub). Re-run publish.bat before building the MSI." />
+    <Error Condition="!Exists('$(_Pub)KeyboardDetailWindow.xbf')"
+           Text="KeyboardDetailWindow.xbf not found in $(_Pub). Build mana (Release|x64) then mana.Sign.Binaries so publish\win-x64 is synced before MSI." />
+    <Error Condition="!Exists('$(_Pub)PastKeyboardsWindow.xbf')"
+           Text="PastKeyboardsWindow.xbf not found in $(_Pub). Build mana (Release|x64) then mana.Sign.Binaries before MSI." />
     <Message Importance="high"
-             Text="manaSetup: payload timestamps exe=$([System.IO.File]::GetLastWriteTime('$(_Pub)mana.exe').ToString('yyyy-MM-dd HH:mm:ss')) dll=$([System.IO.File]::GetLastWriteTime('$(_Pub)mana.dll').ToString('yyyy-MM-dd HH:mm:ss'))" />
+             Text="manaSetup: payload timestamps exe=$([System.IO.File]::GetLastWriteTime('$(_Pub)mana.exe').ToString('yyyy-MM-dd HH:mm:ss')) dll=$([System.IO.File]::GetLastWriteTime('$(_Pub)mana.dll').ToString('yyyy-MM-dd HH:mm:ss')) detailXbf=$([System.IO.File]::GetLastWriteTime('$(_Pub)KeyboardDetailWindow.xbf').ToString('yyyy-MM-dd HH:mm:ss'))" />
+  </Target>
+
+  <!--
+    次カルチャの Purge が bin を消す前に、できた MSI を版付き名で dist へ退避する。
+    Sign.Msi は dist 上の版付き MSI のみを署名する（古い dist をソースにしない）。
+  -->
+  <Target Name="StageMsiToDist" AfterTargets="Build">
+    <PropertyGroup>
+      <_BuiltMsi>$([System.IO.Path]::GetFullPath('$(OutputPath)$(Cultures)\$(OutputName).msi'))</_BuiltMsi>
+      <_DistMsi>$(DistDir)\manaSetup-$(DisplayVersion)-$(Cultures).msi</_DistMsi>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(_BuiltMsi)')"
+           Text="Built MSI not found: $(_BuiltMsi)" />
+    <MakeDir Directories="$(DistDir)" />
+    <Copy SourceFiles="$(_BuiltMsi)" DestinationFiles="$(_DistMsi)" OverwriteReadOnlyFiles="true" />
+    <Message Importance="high" Text="manaSetup: staged $(_DistMsi)" />
+  </Target>
+
+  <!-- VS ソリューションビルドで en-US だけだと ja-JP が欠ける／古い dist を署名してしまうのを防ぐ -->
+  <Target Name="BuildOtherCulture" AfterTargets="StageMsiToDist"
+          Condition="'$(BuildingSecondaryCulture)' != 'true' And '$(SkipOtherCulture)' != 'true'">
+    <PropertyGroup>
+      <_OtherCulture Condition="'$(Cultures)' == 'en-US'">ja-JP</_OtherCulture>
+      <_OtherCulture Condition="'$(Cultures)' == 'ja-JP'">en-US</_OtherCulture>
+      <_OtherRtf>$(MSBuildProjectDirectory)\License\License.$(_OtherCulture).rtf</_OtherRtf>
+    </PropertyGroup>
+    <Error Condition="'$(_OtherCulture)' == ''"
+           Text="Unknown Cultures '$(Cultures)'; expected en-US or ja-JP." />
+    <Error Condition="!Exists('$(_OtherRtf)')"
+           Text="License RTF not found: $(_OtherRtf)" />
+    <Message Importance="high" Text="manaSetup: building other culture $(_OtherCulture)" />
+    <!--
+      Rebuild ではなく Build。Rebuild は Clean を含み、先に stage した他カルチャ MSI や
+      Sign.Binaries が置いた Install-mana.exe まで消してしまう。
+      中間出力の掃除は PurgeWixIntermediatesForFreshPayload が行う。
+    -->
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);Platform=$(Platform);PlatformTarget=$(PlatformTarget);Cultures=$(_OtherCulture);LicenseRtfFile=$(_OtherRtf);PublishDir=$(PublishDir);BuildingSecondaryCulture=true;DisplayVersion=$(DisplayVersion);DistDir=$(DistDir)" />
   </Target>
 </Project>

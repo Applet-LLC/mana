@@ -17,6 +17,12 @@
 
     <!-- 同バージョンの上書きでもアップグレード（旧製品の除去 → 新規インストール）を発火させる。 -->
     <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" AllowSameVersionUpgrades="yes" />
+    <!--
+      既定の再インストールは「バージョン付き PE は新しい FileVersion のときだけ置換」。
+      FileVersion を上げ忘れる／日英 MSI が同じフォルダを共有すると、古い mana.exe が残る。
+      amus = 全ファイルを無条件に置き換える（上書きインストールの保険）。
+    -->
+    <Property Id="REINSTALLMODE" Value="amus" />
     <MediaTemplate EmbedCab="yes" />
 
     <!-- アプリは TargetPlatformMinVersion=10.0.22000（Windows 11）でビルドしている。 -->

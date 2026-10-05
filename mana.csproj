@@ -5,8 +5,11 @@
     <TargetPlatformMinVersion>10.0.22000.0</TargetPlatformMinVersion>
     <RootNamespace>Mana</RootNamespace>
     <AssemblyName>mana</AssemblyName>
-    <!-- MSI の ProductVersion はこの exe の FileVersion（1.0.0.0）から取る。外向け表示は InformationalVersion。 -->
+    <!-- MSI の ProductVersion は exe の FileVersion から取る。外向け表示は InformationalVersion / ARP の 1.00。 -->
+    <!-- FileVersion はビルド時刻で上げる。MSI は同 FileVersion の PE を上書きしないため、常に 1.0.0.0 だと入れ直しでも mana.exe が残る。 -->
     <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.$([System.DateTime]::Now.ToString('yy'))$([System.DateTime]::Now.DayOfYear.ToString('000')).$([System.DateTime]::Now.ToString('HHmm'))</FileVersion>
     <InformationalVersion>1.00</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Product>mana as setting keyboard layout</Product>

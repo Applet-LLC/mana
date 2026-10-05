@@ -7,6 +7,11 @@ Windows 11 で、接続中のキーボードのハードウェア配列（Type /
 ## 必要な環境
 
 - 64 ビット版 Windows 11（ビルド 22000 以降）
+- [.NET Desktop Runtime 9](https://dotnet.microsoft.com/ja-jp/download/dotnet/9.0)（x64）
+
+  Visual Studio のソリューションビルドでは、アプリはフレームワーク依存（ランタイム非同梱）で MSI に入ります。PC に **.NET Desktop Runtime 9**（x64）が必要です（ASP.NET 用や SDK ではありません）。未導入のときは上記からインストールしてください。
+
+  「.NET をインストールしてください」と出ても、インストーラーが「既にインストール済み」と返す場合は、ランタイム不足ではなく配布物の不整合のことがあります。そのときは新しい MSI で入れ直してください。
 
 ## インストール
 

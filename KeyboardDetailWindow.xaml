@@ -54,6 +54,7 @@
         <Grid Grid.Row="2" RowSpacing="4">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <TextBlock
@@ -61,22 +62,38 @@
                 FontSize="14"
                 FontWeight="SemiBold"
                 Text="Memo" />
-            <Pivot
-                x:Name="MemoPivot"
+            <!-- Pivot+WebView2 は高さ0／HWND未作成で空白になりやすいので Visibility 切替にする -->
+            <StackPanel
                 Grid.Row="1"
-                SelectionChanged="MemoPivot_SelectionChanged">
-                <PivotItem x:Name="ViewPivotItem">
-                    <WebView2 x:Name="MemoWebView" />
-                </PivotItem>
-                <PivotItem x:Name="EditPivotItem">
-                    <TextBox
-                        x:Name="MemoEditBox"
-                        AcceptsReturn="True"
-                        TextWrapping="Wrap"
-                        VerticalAlignment="Stretch"
-                        ScrollViewer.VerticalScrollBarVisibility="Auto" />
-                </PivotItem>
-            </Pivot>
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button
+                    x:Name="ViewModeButton"
+                    Click="ViewModeButton_Click" />
+                <Button
+                    x:Name="EditModeButton"
+                    Click="EditModeButton_Click" />
+            </StackPanel>
+            <Grid Grid.Row="2" MinHeight="180">
+                <WebView2
+                    x:Name="MemoWebView"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch" />
+                <TextBox
+                    x:Name="MemoViewFallbackBox"
+                    AcceptsReturn="True"
+                    IsReadOnly="True"
+                    TextWrapping="Wrap"
+                    Visibility="Collapsed"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                <TextBox
+                    x:Name="MemoEditBox"
+                    AcceptsReturn="True"
+                    TextWrapping="Wrap"
+                    Visibility="Collapsed"
+                    VerticalAlignment="Stretch"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto" />
+            </Grid>
         </Grid>
 
         <StackPanel

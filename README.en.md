@@ -7,6 +7,11 @@ Source code is under the [MIT License](LICENSE). Use of the signed installer and
 ## Requirements
 
 - 64-bit Windows 11 (build 22000 or later)
+- [.NET Desktop Runtime 9](https://dotnet.microsoft.com/download/dotnet/9.0) (x64)
+
+  A Visual Studio solution build packages a framework-dependent app (runtime not bundled). You need **.NET Desktop Runtime 9** (x64) — not the ASP.NET Runtime or the SDK. Install it from the link above if it is missing.
+
+  If the app asks you to install .NET but the installer says it is already installed, the package may be inconsistent rather than missing a runtime. Reinstall with a newly built MSI.
 
 ## Install
 
