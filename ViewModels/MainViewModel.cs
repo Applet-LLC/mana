@@ -283,7 +283,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
         LoadGlobalEditorsFromStore();
 
         Devices.Clear();
-        foreach (var info in KeyboardEnumerator.Enumerate())
+        var enumerated = KeyboardEnumerator.Enumerate();
+        KeyboardMetaStore.UpsertMany(enumerated);
+        foreach (var info in enumerated)
         {
             Devices.Add(new KeyboardItemViewModel(info, _global, _hiddenPaths.Contains(info.InstancePath)));
         }

@@ -25,6 +25,9 @@ The MSI for the language you choose must sit in the same folder as `Install-mana
 4. The global override is `i8042prt`. Apply a preset (Japanese 106, English 101/102, Korean) or type the numbers yourself. A device override takes priority over the global override.
 5. Writing the registry requires administrator privileges. Use Restart as Administrator inside the app.
 6. A USB keyboard may need to be unplugged and plugged back in. A built-in keyboard or a global change may need a Windows restart. You can choose to restart when you close the app.
+7. Click a keyboard name in the list to open a detail window with the driver stack, a Markdown memo, and images.
+8. Keyboard history lists previously seen keyboards so you can open their memos (without the driver stack).
+9. Change the notes/images/history folder under Settings. The default is `%LocalAppData%\mana` (a `db` subfolder is created under it).
 
 The app can also open Settings at Hardware keyboard layout. Clearing the global override is the same idea as "Use connected keyboard layout".
 
@@ -32,7 +35,7 @@ The app can also open Settings at Hardware keyboard layout. Clearing the global 
 
 **Do not right-click the executable and choose Run as administrator.** Starting elevated can make this WinUI 3 app exit in `Microsoft.UI.Xaml.dll`. Browse while running normally, and elevate only from inside the app when you need to write.
 
-If startup fails, see `%LocalAppData%\mana\startup-crash.log`. UI language and window position are stored in the same folder.
+If startup fails, see `%LocalAppData%\mana\startup-crash.log`. UI language, window position, and the default folder for keyboard notes/history are stored in the same place.
 
 ## Building
 

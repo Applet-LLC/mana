@@ -48,6 +48,8 @@
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <Button x:Name="ReloadButton" Click="ReloadButton_Click" />
+                <Button x:Name="PastKeyboardsButton" Click="PastKeyboardsButton_Click" />
+                <Button x:Name="StorageSettingsButton" Click="StorageSettingsButton_Click" />
                 <Button x:Name="LanguageButton" Click="LanguageButton_Click" />
                 <Button x:Name="ShowHiddenButton" Click="ShowHiddenButton_Click" />
                 <Button x:Name="SaveHiddenButton" Click="SaveHiddenButton_Click" />
@@ -92,7 +94,12 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="{x:Bind FriendlyName}" TextWrapping="WrapWholeWords" />
+                                    <TextBlock
+                                        Tag="{x:Bind}"
+                                        Text="{x:Bind FriendlyName}"
+                                        TextDecorations="Underline"
+                                        TextWrapping="WrapWholeWords"
+                                        Tapped="DeviceName_Tapped" />
                                     <TextBlock
                                         FontSize="12"
                                         Opacity="0.8"

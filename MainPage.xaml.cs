@@ -42,6 +42,7 @@ public sealed partial class MainPage : Page
             }
         };
 
+        EnsureStorageRootInitialized();
         _ = RunBusyAsync(() =>
         {
             _vm.Reload();
@@ -58,10 +59,115 @@ public sealed partial class MainPage : Page
         });
     }
 
+    private static void EnsureStorageRootInitialized()
+    {
+        try
+        {
+            if (!File.Exists(Path.Combine(StorageRootStore.AppSettingsDirectory, "storage-root.json")))
+            {
+                StorageRootStore.SetRootPath(StorageRootStore.DefaultRootPath);
+            }
+            else
+            {
+                StorageRootStore.EnsureDbDirectory();
+            }
+        }
+        catch
+        {
+            try
+            {
+                StorageRootStore.SetRootPath(StorageRootStore.DefaultRootPath);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    private async Task ShowStorageRootDialogAsync()
+    {
+        try
+        {
+            EnsureStorageRootInitialized();
+            var pathText = new TextBlock
+            {
+                Text = StorageRootStore.GetRootPath(),
+                TextWrapping = TextWrapping.Wrap,
+                IsTextSelectionEnabled = true
+            };
+
+            var changeButton = new Button { Content = Localization.Get("Button_ChangeStorage") };
+            changeButton.Click += async (_, _) =>
+            {
+                var picked = await PickStorageFolderAsync();
+                if (!string.IsNullOrWhiteSpace(picked))
+                {
+                    StorageRootStore.SetRootPath(picked);
+                    pathText.Text = StorageRootStore.GetRootPath();
+                }
+            };
+
+            var panel = new StackPanel { Spacing = 8 };
+            panel.Children.Add(new TextBlock
+            {
+                Text = Localization.Get("Dialog_StorageMessage"),
+                TextWrapping = TextWrapping.Wrap
+            });
+            panel.Children.Add(new TextBlock
+            {
+                Text = Localization.Get("Dialog_StoragePathLabel"),
+                Opacity = 0.75
+            });
+            panel.Children.Add(pathText);
+            panel.Children.Add(changeButton);
+
+            var dialog = new ContentDialog
+            {
+                Title = Localization.Get("Dialog_StorageTitle"),
+                Content = panel,
+                PrimaryButtonText = Localization.Get("Button_StorageOk"),
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = XamlRoot
+            };
+
+            await dialog.ShowAsync();
+            StorageRootStore.EnsureDbDirectory();
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = string.Format(Localization.Get("Status_ErrorFormat"), ex.Message);
+        }
+    }
+
+    private async Task<string?> PickStorageFolderAsync()
+    {
+        try
+        {
+            var window = App.MainAppWindow;
+            if (window is null)
+            {
+                return null;
+            }
+
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+            var picker = new Windows.Storage.Pickers.FolderPicker();
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+            picker.FileTypeFilter.Add("*");
+            var folder = await picker.PickSingleFolderAsync();
+            return folder?.Path;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     private void ApplyLocalizedChrome()
     {
         GuidanceText.Text = ConnectedKeyboardLayoutStatus.GetGuidanceText();
         ReloadButton.Content = Localization.Get("Button_Reload");
+        PastKeyboardsButton.Content = Localization.Get("Button_PastKeyboards");
+        StorageSettingsButton.Content = Localization.Get("Button_StorageSettings");
         LanguageButton.Content = LanguageService.ToggleButtonLabel;
         OpenSettingsButton.Content = Localization.Get("Button_OpenSettings");
         OpenDeviceRegistryButton.Content = Localization.Get("Button_OpenDeviceRegistry");
@@ -140,6 +246,39 @@ public sealed partial class MainPage : Page
             SelectComboPreset(DevicePresetCombo, _vm.SelectedDevice?.SelectedPreset);
             SelectComboPreset(GlobalPresetCombo, _vm.SelectedGlobalPreset);
         });
+    }
+
+    private void PastKeyboardsButton_Click(object sender, RoutedEventArgs e)
+    {
+        var connected = _vm.Devices
+            .Select(d => d.InstancePath)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        KeyboardDetailWindowManager.OpenPastList(connected);
+    }
+
+    private void StorageSettingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        _ = ShowStorageRootDialogAsync();
+    }
+
+    private void DeviceName_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        e.Handled = true;
+        var item = (sender as FrameworkElement)?.Tag as KeyboardItemViewModel
+                   ?? (sender as FrameworkElement)?.DataContext as KeyboardItemViewModel;
+        if (item is null)
+        {
+            return;
+        }
+
+        var displayName = !string.IsNullOrWhiteSpace(item.ShellFriendlyName)
+            ? item.ShellFriendlyName
+            : item.FriendlyName;
+        KeyboardDetailWindowManager.OpenDetail(
+            item.InstancePath,
+            displayName,
+            item.HasShellFriendlyName ? item.ShellFriendlyName : null,
+            showDriverStack: true);
     }
 
     private void LanguageButton_Click(object sender, RoutedEventArgs e)

@@ -45,6 +45,8 @@
       <_RequiredWinUiPub Include="$(_Pub)App.xbf" />
       <_RequiredWinUiPub Include="$(_Pub)MainWindow.xbf" />
       <_RequiredWinUiPub Include="$(_Pub)MainPage.xbf" />
+      <_RequiredWinUiPub Include="$(_Pub)KeyboardDetailWindow.xbf" />
+      <_RequiredWinUiPub Include="$(_Pub)PastKeyboardsWindow.xbf" />
     </ItemGroup>
     <Error Condition="!Exists('%(_RequiredWinUiPub.Identity)')"
            Text="WinUI resource missing after Publish: %(_RequiredWinUiPub.Identity). Use Visual Studio MSBuild Publish (publish.bat), not a partial copy of publish\win-x64." />
@@ -67,6 +69,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Markdig" Version="0.41.1" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
   </ItemGroup>

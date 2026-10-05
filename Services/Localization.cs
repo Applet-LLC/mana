@@ -88,6 +88,29 @@ public static class Localization
         ["Dialog_ExitReboot"] = ("Restart now", "今すぐ再起動"),
         ["Dialog_ExitQuit"] = ("Exit without restart", "再起動せず終了"),
         ["Dialog_ExitCancel"] = ("Cancel", "キャンセル"),
+        ["Button_PastKeyboards"] = ("Keyboard history", "過去のキーボード一覧"),
+        ["Button_StorageSettings"] = ("Settings", "設定"),
+        ["Button_OpenFolder"] = ("Open folder", "フォルダを開く"),
+        ["Button_ChangeStorage"] = ("Change…", "変更…"),
+        ["Button_StorageOk"] = ("OK", "OK"),
+        ["Tab_MemoView"] = ("View", "表示"),
+        ["Tab_MemoEdit"] = ("Edit", "編集"),
+        ["Section_PastKeyboards"] = ("Keyboard history", "過去のキーボード一覧"),
+        ["Badge_Connected"] = ("Connected", "接続中"),
+        ["Stack_None"] = ("(none)", "(なし)"),
+        ["Stack_NoImage"] = ("No image", "画像なし"),
+        ["Label_DriverStack"] = ("Driver Stack", "Driver Stack"),
+        ["Label_Memo"] = ("Memo", "Memo"),
+        ["Tooltip_OpenImage"] = ("Open original image", "オリジナル画像を開く"),
+        ["Dialog_StorageTitle"] = ("Data folder", "情報保存フォルダ"),
+        ["Dialog_StorageMessage"] = (
+            "Choose the folder used for keyboard notes, images, and history (a db subfolder is created under it).",
+            "キーボードのメモ・画像・履歴を保存するフォルダを指定します（直下に db フォルダが作成されます）。"),
+        ["Dialog_StoragePathLabel"] = ("Current folder", "現在のフォルダ"),
+        ["Status_StorageSetFormat"] = ("Data folder: {0}", "情報保存フォルダ: {0}"),
+        ["Status_NoHistory"] = (
+            "No saved keyboard history yet. Connected keyboards are recorded when the list is loaded.",
+            "保存済みのキーボード履歴はまだありません。接続中のキーボードは一覧の読み込み時に記録されます。"),
     };
 
     public static void Refresh()
