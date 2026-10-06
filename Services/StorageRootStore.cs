@@ -19,6 +19,12 @@ public static class StorageRootStore
 
     public static string DefaultRootPath => AppSettingsDirectory;
 
+    /// <summary>
+    /// WebView2 のユーザーデータフォルダ。指定しないと exe の隣（Program Files 配下）に作ろうとして、
+    /// 標準ユーザーでは書き込めず初期化に失敗する。保存先ルートの変更に追従させず、常にここに置く。
+    /// </summary>
+    public static string WebView2UserDataFolder => Path.Combine(AppSettingsDirectory, "WebView2");
+
     public static string GetRootPath()
     {
         if (!string.IsNullOrWhiteSpace(_cachedRoot))

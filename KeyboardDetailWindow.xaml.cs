@@ -407,7 +407,13 @@ public sealed partial class KeyboardDetailWindow : Window
 
             if (!_webViewReady || MemoWebView.CoreWebView2 is null)
             {
-                await MemoWebView.EnsureCoreWebView2Async();
+                // 既定のデータフォルダは exe の隣（Program Files）で標準ユーザーは書けないため、LocalAppData 側に置く。
+                Directory.CreateDirectory(StorageRootStore.WebView2UserDataFolder);
+                var environment = await Microsoft.Web.WebView2.Core.CoreWebView2Environment.CreateWithOptionsAsync(
+                    string.Empty,
+                    StorageRootStore.WebView2UserDataFolder,
+                    new Microsoft.Web.WebView2.Core.CoreWebView2EnvironmentOptions());
+                await MemoWebView.EnsureCoreWebView2Async(environment);
                 _webViewReady = MemoWebView.CoreWebView2 is not null;
             }
 
