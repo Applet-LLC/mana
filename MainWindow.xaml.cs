@@ -94,6 +94,10 @@ public sealed partial class MainWindow : Window
     private async void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
     {
         PersistWindowBounds();
+        if (RootFrame.Content is MainPage mainPage)
+        {
+            mainPage.PersistHiddenOnExit();
+        }
 
         if (_allowClose || AppSessionState.SuppressExitPrompt || !AppSessionState.RegistryChanged)
         {

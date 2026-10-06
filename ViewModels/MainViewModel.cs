@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Mana.Models;
 using Mana.Services;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace Mana.ViewModels;
 
@@ -23,12 +25,23 @@ public sealed class KeyboardItemViewModel : INotifyPropertyChanged
         ShellFriendlyName = info.ShellFriendlyName ?? string.Empty;
         HasShellFriendlyName = !string.IsNullOrWhiteSpace(info.ShellFriendlyName);
         HardwareIds = info.HardwareIds ?? string.Empty;
+        InstanceKeyHashText = info.InstanceKeyHashText;
+        ModelKeyHashText = info.ModelKeyHashText;
         Manufacturer = info.Manufacturer ?? string.Empty;
         DeviceType = info.DeviceOverride.Type;
         DeviceSubtype = info.DeviceOverride.Subtype;
         _isHidden = isHidden;
         _editType = DeviceType;
         _editSubtype = DeviceSubtype;
+
+        var thumb = KeyboardNoteStore.FindFirstImageForDevice(InstancePath);
+        ThumbnailPath = thumb;
+        HasThumbnail = !string.IsNullOrWhiteSpace(thumb) && File.Exists(thumb);
+        if (HasThumbnail)
+        {
+            ThumbnailImage = new BitmapImage(new Uri(thumb!));
+        }
+
         RefreshEffective(global);
     }
 
@@ -39,8 +52,17 @@ public sealed class KeyboardItemViewModel : INotifyPropertyChanged
     public string ShellFriendlyName { get; }
     public bool HasShellFriendlyName { get; }
     public string HardwareIds { get; }
+    public string? InstanceKeyHashText { get; }
+    public string? ModelKeyHashText { get; }
     public string Manufacturer { get; }
+    public string? ThumbnailPath { get; }
+    public BitmapImage? ThumbnailImage { get; }
+    public bool HasThumbnail { get; }
+    public Visibility ThumbnailImageVisibility => HasThumbnail ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility NoThumbnailLabelVisibility => HasThumbnail ? Visibility.Collapsed : Visibility.Visible;
     public string HideTooltip => Localization.Get("Tooltip_HideDevice");
+    public string NoImageLabel => Localization.Get("Stack_NoImage");
+    public string OpenDetailTooltip => Localization.Get("Tooltip_OpenDeviceDetail");
     public int? DeviceType { get; private set; }
     public int? DeviceSubtype { get; private set; }
 
@@ -101,6 +123,9 @@ public sealed class KeyboardItemViewModel : INotifyPropertyChanged
         private set => SetField(ref _sourceDisplayName, value);
     }
 
+    /// <summary>一覧の種別・ソース表示（間の空白も含めて下線を引く用）。</summary>
+    public string LayoutSourceDisplayName => $"{LayoutDisplayName}\u3000\u3000{SourceDisplayName}";
+
     public OverrideSource EffectiveSource
     {
         get => _effectiveSource;
@@ -144,6 +169,7 @@ public sealed class KeyboardItemViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(EffectiveSubtype));
         OnPropertyChanged(nameof(LayoutDisplayName));
         OnPropertyChanged(nameof(SourceDisplayName));
+        OnPropertyChanged(nameof(LayoutSourceDisplayName));
         OnPropertyChanged(nameof(EffectiveSource));
     }
 

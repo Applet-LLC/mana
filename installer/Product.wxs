@@ -53,7 +53,9 @@
     </InstallExecuteSequence>
 
     <StandardDirectory Id="ProgramFiles64Folder">
-      <Directory Id="INSTALLFOLDER" Name="mana" />
+      <Directory Id="AppletProgramFolder" Name="applet">
+        <Directory Id="INSTALLFOLDER" Name="mana" />
+      </Directory>
     </StandardDirectory>
     <StandardDirectory Id="ProgramMenuFolder">
       <Directory Id="AppletStartMenuFolder" Name="Applet" />
@@ -76,6 +78,7 @@
                     Advertise="no" />
         </File>
         <RemoveFolder Id="RM_AppletStartMenu" Directory="AppletStartMenuFolder" On="uninstall" />
+        <RemoveFolder Id="RM_AppletProgramFolder" Directory="AppletProgramFolder" On="uninstall" />
       </Component>
     </DirectoryRef>
 

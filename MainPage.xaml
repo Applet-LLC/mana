@@ -30,18 +30,13 @@
     <Grid Padding="16" RowSpacing="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock
-            x:Name="GuidanceText"
-            Grid.Row="0"
-            TextWrapping="Wrap" />
-
-        <Grid Grid.Row="1" ColumnSpacing="16">
+        <Grid Grid.Row="0" ColumnSpacing="16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -49,24 +44,21 @@
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <Button x:Name="ReloadButton" Click="ReloadButton_Click" />
                 <Button x:Name="PastKeyboardsButton" Click="PastKeyboardsButton_Click" />
-                <Button x:Name="StorageSettingsButton" Click="StorageSettingsButton_Click" />
-                <Button x:Name="LanguageButton" Click="LanguageButton_Click" />
-                <Button x:Name="ShowHiddenButton" Click="ShowHiddenButton_Click" />
-                <Button x:Name="SaveHiddenButton" Click="SaveHiddenButton_Click" />
-                <Button x:Name="OpenSettingsButton" Click="OpenSettingsButton_Click" />
-                <Button x:Name="OpenDeviceRegistryButton" Click="OpenDeviceRegistryButton_Click" />
-                <Button x:Name="ElevateButton" Click="ElevateButton_Click" />
+                <Button x:Name="SettingsButton" Click="SettingsButton_Click" />
+                <Button x:Name="VersionButton" Click="VersionButton_Click" />
             </StackPanel>
             <StackPanel
                 Grid.Column="1"
                 Orientation="Horizontal"
                 Spacing="8">
+                <Button x:Name="OpenDeviceRegistryButton" Click="OpenDeviceRegistryButton_Click" />
                 <Button x:Name="ApplyDeviceButton" Click="ApplyDeviceButton_Click" />
                 <Button x:Name="ClearDeviceButton" Click="ClearDeviceButton_Click" />
+                <Button x:Name="ElevateButton" Click="ElevateButton_Click" />
             </StackPanel>
         </Grid>
 
-        <Grid Grid.Row="2" ColumnSpacing="16">
+        <Grid Grid.Row="1" ColumnSpacing="16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1.3*" />
                 <ColumnDefinition Width="*" />
@@ -86,14 +78,40 @@
                         <DataTemplate x:DataType="vm:KeyboardItemViewModel">
                             <Grid ColumnSpacing="8" Padding="0,4">
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="140" />
-                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="230" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
+                                <Border
+                                    Grid.Column="0"
+                                    Width="80"
+                                    Height="40"
+                                    VerticalAlignment="Center"
+                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    Tag="{x:Bind}"
+                                    Tapped="DeviceThumbnail_Tapped"
+                                    ToolTipService.ToolTip="{x:Bind OpenDetailTooltip}">
+                                    <Grid>
+                                        <Image
+                                            Stretch="UniformToFill"
+                                            Source="{x:Bind ThumbnailImage}"
+                                            Visibility="{x:Bind ThumbnailImageVisibility}" />
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="10"
+                                            Opacity="0.65"
+                                            Text="{x:Bind NoImageLabel}"
+                                            Visibility="{x:Bind NoThumbnailLabelVisibility}" />
+                                    </Grid>
+                                </Border>
+                                <StackPanel Grid.Column="1">
                                     <TextBlock
                                         Tag="{x:Bind}"
                                         Text="{x:Bind FriendlyName}"
@@ -114,14 +132,11 @@
                                         TextWrapping="Wrap" />
                                 </StackPanel>
                                 <TextBlock
-                                    Grid.Column="1"
-                                    VerticalAlignment="Center"
-                                    Text="{x:Bind LayoutDisplayName, Mode=OneWay}"
-                                    TextWrapping="Wrap" />
-                                <TextBlock
                                     Grid.Column="2"
                                     VerticalAlignment="Center"
-                                    Text="{x:Bind SourceDisplayName, Mode=OneWay}" />
+                                    Text="{x:Bind LayoutSourceDisplayName, Mode=OneWay}"
+                                    TextDecorations="Underline"
+                                    TextWrapping="WrapWholeWords" />
                                 <TextBlock
                                     Grid.Column="3"
                                     VerticalAlignment="Center"
@@ -183,71 +198,141 @@
             </ScrollViewer>
         </Grid>
 
-        <Border
+        <StackPanel Grid.Row="2" Spacing="10">
+            <Border
+                Padding="12,8"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="8">
+                <StackPanel Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <TextBlock
+                            x:Name="LocaleLayoutHeader"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource SectionHeader}"
+                            Margin="0" />
+                        <TextBlock
+                            x:Name="LocaleLayoutRegistryPathText"
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            IsTextSelectionEnabled="True"
+                            Opacity="0.7"
+                            TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.4*" MinWidth="180" />
+                            <ColumnDefinition Width="1.2*" MinWidth="160" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock x:Name="LocaleLabel" Style="{StaticResource CompactLabel}" />
+                            <ComboBox
+                                x:Name="LocaleCombo"
+                                HorizontalAlignment="Stretch"
+                                SelectionChanged="LocaleCombo_SelectionChanged" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock x:Name="LayoutFileLabel" Style="{StaticResource CompactLabel}" />
+                            <ComboBox
+                                x:Name="LayoutFileCombo"
+                                HorizontalAlignment="Stretch"
+                                IsEditable="True" />
+                        </StackPanel>
+                        <Button
+                            x:Name="ApplyLocaleLayoutButton"
+                            Grid.Column="2"
+                            VerticalAlignment="Bottom"
+                            Click="ApplyLocaleLayoutButton_Click" />
+                        <Button
+                            x:Name="OpenLocaleLayoutRegistryButton"
+                            Grid.Column="3"
+                            VerticalAlignment="Bottom"
+                            Click="OpenLocaleLayoutRegistryButton_Click" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border
+                Padding="12,8"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="8">
+                <StackPanel Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <TextBlock
+                            x:Name="GlobalHeader"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource SectionHeader}"
+                            Margin="0" />
+                        <TextBlock
+                            x:Name="GlobalRegistryPathText"
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            IsTextSelectionEnabled="True"
+                            Opacity="0.7"
+                            TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.6*" MinWidth="180" />
+                            <ColumnDefinition Width="0.6*" MinWidth="64" />
+                            <ColumnDefinition Width="0.6*" MinWidth="64" />
+                            <ColumnDefinition Width="1.2*" MinWidth="120" />
+                            <ColumnDefinition Width="*" MinWidth="100" />
+                            <ColumnDefinition Width="*" MinWidth="100" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock x:Name="GlobalPresetLabel" Style="{StaticResource CompactLabel}" />
+                            <ComboBox
+                                x:Name="GlobalPresetCombo"
+                                HorizontalAlignment="Stretch"
+                                SelectionChanged="GlobalPresetCombo_SelectionChanged" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock x:Name="GlobalTypeLabel" Style="{StaticResource CompactLabel}" />
+                            <TextBox x:Name="GlobalTypeBox" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock x:Name="GlobalSubtypeLabel" Style="{StaticResource CompactLabel}" />
+                            <TextBox x:Name="GlobalSubtypeBox" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="3">
+                            <TextBlock x:Name="GlobalIdentifierLabel" Style="{StaticResource CompactLabel}" />
+                            <TextBox x:Name="GlobalIdentifierBox" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="4">
+                            <TextBlock x:Name="GlobalLayerJpnLabel" Style="{StaticResource CompactLabel}" />
+                            <TextBox x:Name="GlobalLayerJpnBox" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="5">
+                            <TextBlock x:Name="GlobalLayerKorLabel" Style="{StaticResource CompactLabel}" />
+                            <TextBox x:Name="GlobalLayerKorBox" />
+                        </StackPanel>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="ApplyGlobalPresetButton" Click="ApplyGlobalPresetButton_Click" />
+                            <Button x:Name="ApplyGlobalButton" Click="ApplyGlobalButton_Click" />
+                            <Button x:Name="ClearGlobalButton" Click="ClearGlobalButton_Click" />
+                            <Button x:Name="OpenGlobalRegistryButton" Click="OpenGlobalRegistryButton_Click" />
+                        </StackPanel>
+                        <Button
+                            x:Name="OpenLanguageSettingsButton"
+                            Grid.Column="1"
+                            Click="OpenLanguageSettingsButton_Click" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <TextBlock
+            x:Name="GuidanceText"
             Grid.Row="3"
-            Padding="12,8"
-            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-            CornerRadius="8">
-            <StackPanel Spacing="6">
-                <StackPanel Orientation="Horizontal" Spacing="12">
-                    <TextBlock
-                        x:Name="GlobalHeader"
-                        VerticalAlignment="Center"
-                        FontSize="15"
-                        FontWeight="SemiBold" />
-                    <TextBlock
-                        x:Name="GlobalRegistryPathText"
-                        VerticalAlignment="Center"
-                        FontSize="12"
-                        IsTextSelectionEnabled="True"
-                        Opacity="0.7"
-                        TextTrimming="CharacterEllipsis" />
-                </StackPanel>
-                <Grid ColumnSpacing="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1.6*" MinWidth="180" />
-                        <ColumnDefinition Width="0.6*" MinWidth="64" />
-                        <ColumnDefinition Width="0.6*" MinWidth="64" />
-                        <ColumnDefinition Width="1.2*" MinWidth="120" />
-                        <ColumnDefinition Width="*" MinWidth="100" />
-                        <ColumnDefinition Width="*" MinWidth="100" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0">
-                        <TextBlock x:Name="GlobalPresetLabel" Style="{StaticResource CompactLabel}" />
-                        <ComboBox
-                            x:Name="GlobalPresetCombo"
-                            HorizontalAlignment="Stretch"
-                            SelectionChanged="GlobalPresetCombo_SelectionChanged" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="1">
-                        <TextBlock x:Name="GlobalTypeLabel" Style="{StaticResource CompactLabel}" />
-                        <TextBox x:Name="GlobalTypeBox" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="2">
-                        <TextBlock x:Name="GlobalSubtypeLabel" Style="{StaticResource CompactLabel}" />
-                        <TextBox x:Name="GlobalSubtypeBox" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="3">
-                        <TextBlock x:Name="GlobalIdentifierLabel" Style="{StaticResource CompactLabel}" />
-                        <TextBox x:Name="GlobalIdentifierBox" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="4">
-                        <TextBlock x:Name="GlobalLayerJpnLabel" Style="{StaticResource CompactLabel}" />
-                        <TextBox x:Name="GlobalLayerJpnBox" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="5">
-                        <TextBlock x:Name="GlobalLayerKorLabel" Style="{StaticResource CompactLabel}" />
-                        <TextBox x:Name="GlobalLayerKorBox" />
-                    </StackPanel>
-                </Grid>
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button x:Name="ApplyGlobalPresetButton" Click="ApplyGlobalPresetButton_Click" />
-                    <Button x:Name="ApplyGlobalButton" Click="ApplyGlobalButton_Click" />
-                    <Button x:Name="ClearGlobalButton" Click="ClearGlobalButton_Click" />
-                    <Button x:Name="OpenGlobalRegistryButton" Click="OpenGlobalRegistryButton_Click" />
-                </StackPanel>
-            </StackPanel>
-        </Border>
+            TextWrapping="Wrap" />
 
         <TextBlock
             x:Name="StatusText"

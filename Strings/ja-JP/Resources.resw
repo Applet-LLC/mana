@@ -6,7 +6,7 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
 
   <data name="AppTitle" xml:space="preserve"><value>キーボードレイアウト設定ツール まな</value></data>
-  <data name="Button_Reload" xml:space="preserve"><value>再読込</value></data>
+  <data name="Button_Reload" xml:space="preserve"><value>最新の情報に更新</value></data>
   <data name="Button_OpenSettings" xml:space="preserve"><value>言語設定を開く</value></data>
   <data name="Button_ShowHidden" xml:space="preserve"><value>非表示も表示</value></data>
   <data name="Button_HideHidden" xml:space="preserve"><value>非表示を隠す</value></data>
@@ -31,6 +31,7 @@
 
   <data name="Label_InstancePath" xml:space="preserve"><value>デバイスインスタンスパス</value></data>
   <data name="Label_HardwareIds" xml:space="preserve"><value>ハードウェア ID</value></data>
+  <data name="Label_WithHashFormat" xml:space="preserve"><value>{0}　Hash値: {1}</value></data>
   <data name="Label_Preset" xml:space="preserve"><value>国・配列プリセット</value></data>
   <data name="Label_Type" xml:space="preserve"><value>タイプ</value></data>
   <data name="Label_Subtype" xml:space="preserve"><value>サブタイプ</value></data>

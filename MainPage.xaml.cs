@@ -12,6 +12,7 @@ public sealed partial class MainPage : Page
 {
     private readonly MainViewModel _vm = new();
     private bool _suppressPresetEvents;
+    private bool _suppressLocaleEvents;
     private bool _busy;
     private InputCursor? _previousCursor;
 
@@ -25,20 +26,13 @@ public sealed partial class MainPage : Page
     {
         ApplyLocalizedChrome();
         PopulatePresetCombos();
+        PopulateLocaleLayoutEditors(selectDefaultForUiLanguage: true);
         DeviceList.ItemsSource = _vm.VisibleDevices;
         _vm.PropertyChanged += (_, args) =>
         {
             if (args.PropertyName is nameof(MainViewModel.StatusMessage))
             {
                 StatusText.Text = _vm.StatusMessage;
-            }
-            else if (args.PropertyName is nameof(MainViewModel.LanguageButtonLabel))
-            {
-                LanguageButton.Content = _vm.LanguageButtonLabel;
-            }
-            else if (args.PropertyName is nameof(MainViewModel.ShowHidden))
-            {
-                UpdateShowHiddenButton();
             }
         };
 
@@ -48,7 +42,6 @@ public sealed partial class MainPage : Page
             _vm.Reload();
             SyncGlobalEditorsFromVm();
             BindSelectedDeviceEditors();
-            UpdateShowHiddenButton();
             UpdateGuidanceText();
             var elevation = ElevationService.IsElevated()
                 ? Localization.Get("Status_Elevated")
@@ -57,6 +50,17 @@ public sealed partial class MainPage : Page
                 ? elevation
                 : $"{_vm.StatusMessage}  {elevation}";
         });
+    }
+
+    public void PersistHiddenOnExit()
+    {
+        try
+        {
+            _vm.PersistHiddenFlags();
+        }
+        catch
+        {
+        }
     }
 
     private static void EnsureStorageRootInitialized()
@@ -84,7 +88,7 @@ public sealed partial class MainPage : Page
         }
     }
 
-    private async Task ShowStorageRootDialogAsync()
+    private async Task ShowAppSettingsDialogAsync()
     {
         try
         {
@@ -107,7 +111,50 @@ public sealed partial class MainPage : Page
                 }
             };
 
-            var panel = new StackPanel { Spacing = 8 };
+            var languageButton = new Button { Content = LanguageService.ToggleButtonLabel };
+            languageButton.Click += (_, _) =>
+            {
+                LanguageService.Toggle();
+                languageButton.Content = LanguageService.ToggleButtonLabel;
+                App.ReloadUiLanguage();
+            };
+
+            var showHiddenToggle = new ToggleSwitch
+            {
+                IsOn = _vm.ShowHidden,
+                OnContent = Localization.Get("Button_ShowHidden"),
+                OffContent = Localization.Get("Button_HideHidden")
+            };
+
+            var globalUi = GlobalMemoUiStore.Load();
+            var resolvedFamily = string.IsNullOrWhiteSpace(globalUi.FontFamily)
+                ? KeyboardMemoUiStore.DefaultFontFamily
+                : globalUi.FontFamily!;
+            var resolvedSize = globalUi.FontSize ?? KeyboardMemoUiStore.DefaultFontSize;
+
+            var familyCombo = new ComboBox
+            {
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                IsEditable = true,
+                ItemsSource = KeyboardMemoUiStore.GetInstalledFontFamilies(),
+                Text = resolvedFamily
+            };
+            if (familyCombo.Items.Contains(resolvedFamily))
+            {
+                familyCombo.SelectedItem = resolvedFamily;
+            }
+
+            var sizeBox = new NumberBox
+            {
+                Minimum = 8,
+                Maximum = 48,
+                SmallChange = 1,
+                LargeChange = 2,
+                SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline,
+                Value = resolvedSize
+            };
+
+            var panel = new StackPanel { Spacing = 10, MinWidth = 420 };
             panel.Children.Add(new TextBlock
             {
                 Text = Localization.Get("Dialog_StorageMessage"),
@@ -121,17 +168,128 @@ public sealed partial class MainPage : Page
             panel.Children.Add(pathText);
             panel.Children.Add(changeButton);
 
+            panel.Children.Add(new TextBlock
+            {
+                Text = Localization.Get("Label_UiLanguage"),
+                Opacity = 0.75,
+                Margin = new Thickness(0, 8, 0, 0)
+            });
+            panel.Children.Add(languageButton);
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = Localization.Get("Label_ShowHiddenDevices"),
+                Opacity = 0.75,
+                Margin = new Thickness(0, 8, 0, 0),
+                TextWrapping = TextWrapping.Wrap
+            });
+            panel.Children.Add(showHiddenToggle);
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = Localization.Get("Label_GlobalMemoFont"),
+                Opacity = 0.75,
+                Margin = new Thickness(0, 8, 0, 0),
+                TextWrapping = TextWrapping.Wrap
+            });
+            panel.Children.Add(new TextBlock { Text = Localization.Get("Label_MemoFontFamily") });
+            panel.Children.Add(familyCombo);
+            panel.Children.Add(new TextBlock { Text = Localization.Get("Label_MemoFontSize") });
+            panel.Children.Add(sizeBox);
+
             var dialog = new ContentDialog
             {
                 Title = Localization.Get("Dialog_StorageTitle"),
-                Content = panel,
+                Content = new ScrollViewer
+                {
+                    Content = panel,
+                    MaxHeight = 520,
+                    VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+                },
                 PrimaryButtonText = Localization.Get("Button_StorageOk"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot
             };
 
             await dialog.ShowAsync();
+
+            if (showHiddenToggle.IsOn != _vm.ShowHidden)
+            {
+                _vm.ShowHidden = showHiddenToggle.IsOn;
+            }
+
+            var family = familyCombo.SelectedItem as string ?? familyCombo.Text;
+            if (string.IsNullOrWhiteSpace(family))
+            {
+                family = KeyboardMemoUiStore.DefaultFontFamily;
+            }
+
+            var size = double.IsNaN(sizeBox.Value) ? KeyboardMemoUiStore.DefaultFontSize : sizeBox.Value;
+            GlobalMemoUiStore.Save(new KeyboardMemoUiSettings
+            {
+                FontFamily = family.Trim(),
+                FontSize = size
+            });
+
+            _vm.PersistHiddenFlags();
             StorageRootStore.EnsureDbDirectory();
+            StatusText.Text = string.Format(Localization.Get("Status_StorageSetFormat"), StorageRootStore.GetRootPath());
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = string.Format(Localization.Get("Status_ErrorFormat"), ex.Message);
+        }
+    }
+
+    private void ShowVersionDialog()
+    {
+        try
+        {
+            var exePath = Environment.ProcessPath
+                          ?? Path.Combine(AppContext.BaseDirectory, "mana.exe");
+            var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(exePath);
+            var version = !string.IsNullOrWhiteSpace(versionInfo.ProductVersion)
+                ? versionInfo.ProductVersion
+                : (versionInfo.FileVersion ?? Localization.Get("AppTitle"));
+            var binaryName = Path.GetFileName(exePath);
+            var installPath = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            var panel = new StackPanel { Spacing = 8, MinWidth = 420 };
+            void AddRow(string label, string value)
+            {
+                panel.Children.Add(new TextBlock { Text = label, Opacity = 0.75 });
+                panel.Children.Add(new TextBlock
+                {
+                    Text = value,
+                    TextWrapping = TextWrapping.Wrap,
+                    IsTextSelectionEnabled = true
+                });
+            }
+
+            AddRow(Localization.Get("Label_VersionAppName"), Localization.Get("AppTitle"));
+            AddRow(Localization.Get("Label_VersionBinary"), binaryName);
+            AddRow(Localization.Get("Label_VersionNumber"), version ?? string.Empty);
+            AddRow(Localization.Get("Label_VersionInstallPath"), installPath);
+            panel.Children.Add(new TextBlock
+            {
+                Text = Localization.Get("Label_VersionWebsite"),
+                Opacity = 0.75
+            });
+            panel.Children.Add(new HyperlinkButton
+            {
+                Content = "https://appletllc.com/",
+                NavigateUri = new Uri("https://appletllc.com/")
+            });
+
+            var dialog = new ContentDialog
+            {
+                Title = Localization.Get("Dialog_VersionTitle"),
+                Content = panel,
+                CloseButtonText = Localization.Get("Button_Close"),
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = XamlRoot
+            };
+            _ = dialog.ShowAsync();
         }
         catch (Exception ex)
         {
@@ -167,25 +325,26 @@ public sealed partial class MainPage : Page
         GuidanceText.Text = ConnectedKeyboardLayoutStatus.GetGuidanceText();
         ReloadButton.Content = Localization.Get("Button_Reload");
         PastKeyboardsButton.Content = Localization.Get("Button_PastKeyboards");
-        StorageSettingsButton.Content = Localization.Get("Button_StorageSettings");
-        LanguageButton.Content = LanguageService.ToggleButtonLabel;
-        OpenSettingsButton.Content = Localization.Get("Button_OpenSettings");
+        SettingsButton.Content = Localization.Get("Button_StorageSettings");
+        VersionButton.Content = Localization.Get("Button_Version");
         OpenDeviceRegistryButton.Content = Localization.Get("Button_OpenDeviceRegistry");
         OpenGlobalRegistryButton.Content = Localization.Get("Button_OpenGlobalRegistry");
-        SaveHiddenButton.Content = Localization.Get("Button_SaveHidden");
-        ElevateButton.Content = Localization.Get("Button_RestartElevated");
-        ElevateButton.Visibility = ElevationService.IsElevated()
-            ? Visibility.Collapsed
-            : Visibility.Visible;
+        OpenLanguageSettingsButton.Content = Localization.Get("Button_OpenSettings");
         DevicesHeader.Text = Localization.Get("Section_Devices");
         DeviceDetailHeader.Text = Localization.Get("Section_DeviceDetail");
+        LocaleLayoutHeader.Text = Localization.Get("Section_LocaleLayout");
+        LocaleLabel.Text = Localization.Get("Label_Locale");
+        LayoutFileLabel.Text = Localization.Get("Label_LayoutFile");
+        ApplyLocaleLayoutButton.Content = Localization.Get("Button_ApplyLocaleLayout");
+        OpenLocaleLayoutRegistryButton.Content = Localization.Get("Button_OpenLocaleLayoutRegistry");
         GlobalHeader.Text = Localization.Get("Section_Global");
-        InstancePathLabel.Text = Localization.Get("Label_InstancePath");
-        HardwareIdsLabel.Text = Localization.Get("Label_HardwareIds");
+        UpdateDeviceIdLabels(_vm.SelectedDevice);
         ShellNameLabel.Text = Localization.Get("Label_ShellName");
         DeviceRegistryPathLabel.Text = Localization.Get("Label_RegistryPath");
         GlobalRegistryPathText.Text = RegistryLauncher.GlobalParametersPath;
         ToolTipService.SetToolTip(GlobalRegistryPathText, RegistryLauncher.GlobalParametersPath);
+        RefreshLocaleLayoutPathLabel();
+        RefreshLocaleComboLabels();
         EffectiveLabel.Text = Localization.Get("Label_Effective");
         DevicePresetLabel.Text = Localization.Get("Label_Preset");
         DeviceTypeLabel.Text = Localization.Get("Label_Type");
@@ -198,17 +357,176 @@ public sealed partial class MainPage : Page
         GlobalLayerKorLabel.Text = Localization.Get("Label_LayerDriverKor");
         ApplyDeviceButton.Content = Localization.Get("Button_ApplyDevice");
         ClearDeviceButton.Content = Localization.Get("Button_ClearDevice");
+        ElevateButton.Content = Localization.Get("Button_RestartElevated");
+        ElevateButton.Visibility = ElevationService.IsElevated()
+            ? Visibility.Collapsed
+            : Visibility.Visible;
         ApplyGlobalPresetButton.Content = Localization.Get("Button_ApplyGlobalPreset");
         ApplyGlobalButton.Content = Localization.Get("Button_ApplyGlobal");
         ClearGlobalButton.Content = Localization.Get("Button_ClearGlobal");
-        UpdateShowHiddenButton();
     }
 
-    private void UpdateShowHiddenButton()
+    private void PopulateLocaleLayoutEditors(bool selectDefaultForUiLanguage)
     {
-        ShowHiddenButton.Content = _vm.ShowHidden
-            ? Localization.Get("Button_HideHidden")
-            : Localization.Get("Button_ShowHidden");
+        _suppressLocaleEvents = true;
+        try
+        {
+            LayoutFileCombo.Items.Clear();
+            foreach (var candidate in LocaleLayoutStore.LayoutFileCandidates)
+            {
+                LayoutFileCombo.Items.Add(candidate);
+            }
+
+            var preferredId = selectDefaultForUiLanguage
+                ? LocaleLayoutStore.GetDefaultLocaleId()
+                : GetSelectedLocaleId() ?? LocaleLayoutStore.GetDefaultLocaleId();
+
+            LocaleCombo.Items.Clear();
+            ComboBoxItem? selected = null;
+            foreach (var locale in LocaleLayoutStore.Locales)
+            {
+                var item = new ComboBoxItem
+                {
+                    Content = Localization.Get(locale.DisplayNameResourceKey),
+                    Tag = locale.LocaleId
+                };
+                LocaleCombo.Items.Add(item);
+                if (string.Equals(locale.LocaleId, preferredId, StringComparison.OrdinalIgnoreCase))
+                {
+                    selected = item;
+                }
+            }
+
+            LocaleCombo.SelectedItem = selected ?? LocaleCombo.Items.OfType<ComboBoxItem>().FirstOrDefault();
+            LoadLayoutFileEditorForSelectedLocale();
+            RefreshLocaleLayoutPathLabel();
+        }
+        finally
+        {
+            _suppressLocaleEvents = false;
+        }
+    }
+
+    private void RefreshLocaleComboLabels()
+    {
+        var selectedId = GetSelectedLocaleId();
+        _suppressLocaleEvents = true;
+        try
+        {
+            foreach (var item in LocaleCombo.Items.OfType<ComboBoxItem>())
+            {
+                if (item.Tag is string localeId)
+                {
+                    var info = LocaleLayoutStore.Locales.FirstOrDefault(l =>
+                        string.Equals(l.LocaleId, localeId, StringComparison.OrdinalIgnoreCase));
+                    if (info is not null)
+                    {
+                        item.Content = Localization.Get(info.DisplayNameResourceKey);
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(selectedId))
+            {
+                LocaleCombo.SelectedItem = LocaleCombo.Items.OfType<ComboBoxItem>()
+                    .FirstOrDefault(i => string.Equals(i.Tag as string, selectedId, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+        finally
+        {
+            _suppressLocaleEvents = false;
+        }
+
+        RefreshLocaleLayoutPathLabel();
+    }
+
+    private string? GetSelectedLocaleId() =>
+        (LocaleCombo.SelectedItem as ComboBoxItem)?.Tag as string;
+
+    private void RefreshLocaleLayoutPathLabel()
+    {
+        var localeId = GetSelectedLocaleId() ?? LocaleLayoutStore.GetDefaultLocaleId();
+        var path = LocaleLayoutStore.GetHivePath(localeId);
+        LocaleLayoutRegistryPathText.Text = path;
+        ToolTipService.SetToolTip(LocaleLayoutRegistryPathText, path);
+    }
+
+    private void LoadLayoutFileEditorForSelectedLocale()
+    {
+        var localeId = GetSelectedLocaleId();
+        if (string.IsNullOrEmpty(localeId))
+        {
+            LayoutFileCombo.Text = string.Empty;
+            return;
+        }
+
+        var current = LocaleLayoutStore.ReadLayoutFile(localeId) ?? string.Empty;
+        LayoutFileCombo.Text = current;
+        if (!string.IsNullOrWhiteSpace(current))
+        {
+            var match = LayoutFileCombo.Items.OfType<string>()
+                .FirstOrDefault(x => string.Equals(x, current, StringComparison.OrdinalIgnoreCase));
+            if (match is not null)
+            {
+                LayoutFileCombo.SelectedItem = match;
+                LayoutFileCombo.Text = match;
+            }
+        }
+    }
+
+    private void LocaleCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_suppressLocaleEvents)
+        {
+            return;
+        }
+
+        RefreshLocaleLayoutPathLabel();
+        LoadLayoutFileEditorForSelectedLocale();
+    }
+
+    private void ApplyLocaleLayoutButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!EnsureCanWriteRegistry())
+        {
+            return;
+        }
+
+        var localeId = GetSelectedLocaleId();
+        if (string.IsNullOrEmpty(localeId))
+        {
+            return;
+        }
+
+        var layoutFile = LayoutFileCombo.SelectedItem as string ?? LayoutFileCombo.Text;
+        if (string.IsNullOrWhiteSpace(layoutFile))
+        {
+            StatusText.Text = Localization.Get("Status_LocaleLayoutMissing");
+            return;
+        }
+
+        _ = RunBusyAsync(() =>
+        {
+            try
+            {
+                LocaleLayoutStore.WriteLayoutFile(localeId, layoutFile);
+                AppSessionState.RegistryChanged = true;
+                LoadLayoutFileEditorForSelectedLocale();
+                StatusText.Text = Localization.Get("Status_LocaleLayoutSaved");
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = string.Format(Localization.Get("Status_ErrorFormat"), ex.Message);
+            }
+        });
+    }
+
+    private void OpenLocaleLayoutRegistryButton_Click(object sender, RoutedEventArgs e)
+    {
+        var localeId = GetSelectedLocaleId() ?? LocaleLayoutStore.GetDefaultLocaleId();
+        var path = LocaleLayoutStore.GetHivePath(localeId);
+        var (_, message) = RegistryLauncher.OpenKey(path);
+        StatusText.Text = message;
     }
 
     private void PopulatePresetCombos()
@@ -245,6 +563,7 @@ public sealed partial class MainPage : Page
             BindSelectedDeviceEditors();
             SelectComboPreset(DevicePresetCombo, _vm.SelectedDevice?.SelectedPreset);
             SelectComboPreset(GlobalPresetCombo, _vm.SelectedGlobalPreset);
+            LoadLayoutFileEditorForSelectedLocale();
         });
     }
 
@@ -256,16 +575,32 @@ public sealed partial class MainPage : Page
         KeyboardDetailWindowManager.OpenPastList(connected);
     }
 
-    private void StorageSettingsButton_Click(object sender, RoutedEventArgs e)
+    private void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        _ = ShowStorageRootDialogAsync();
+        _ = ShowAppSettingsDialogAsync();
+    }
+
+    private void VersionButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowVersionDialog();
+    }
+
+    private void DeviceThumbnail_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        e.Handled = true;
+        OpenDeviceDetail((sender as FrameworkElement)?.Tag as KeyboardItemViewModel
+                         ?? (sender as FrameworkElement)?.DataContext as KeyboardItemViewModel);
     }
 
     private void DeviceName_Tapped(object sender, TappedRoutedEventArgs e)
     {
         e.Handled = true;
-        var item = (sender as FrameworkElement)?.Tag as KeyboardItemViewModel
-                   ?? (sender as FrameworkElement)?.DataContext as KeyboardItemViewModel;
+        OpenDeviceDetail((sender as FrameworkElement)?.Tag as KeyboardItemViewModel
+                         ?? (sender as FrameworkElement)?.DataContext as KeyboardItemViewModel);
+    }
+
+    private static void OpenDeviceDetail(KeyboardItemViewModel? item)
+    {
         if (item is null)
         {
             return;
@@ -281,31 +616,7 @@ public sealed partial class MainPage : Page
             showDriverStack: true);
     }
 
-    private void LanguageButton_Click(object sender, RoutedEventArgs e)
-    {
-        LanguageService.Toggle();
-        App.ReloadUiLanguage();
-    }
-
-    private void ShowHiddenButton_Click(object sender, RoutedEventArgs e)
-    {
-        _ = RunBusyAsync(() =>
-        {
-            _vm.ToggleHiddenFilter();
-            UpdateShowHiddenButton();
-        });
-    }
-
-    private void SaveHiddenButton_Click(object sender, RoutedEventArgs e)
-    {
-        _ = RunBusyAsync(() =>
-        {
-            _vm.PersistHiddenFlags();
-            StatusText.Text = _vm.StatusMessage;
-        });
-    }
-
-    private async void OpenSettingsButton_Click(object sender, RoutedEventArgs e)
+    private async void OpenLanguageSettingsButton_Click(object sender, RoutedEventArgs e)
     {
         await RunBusyAsync(async () =>
         {
@@ -360,9 +671,25 @@ public sealed partial class MainPage : Page
         });
     }
 
+    private void UpdateDeviceIdLabels(KeyboardItemViewModel? device)
+    {
+        InstancePathLabel.Text = FormatLabelWithHash(
+            Localization.Get("Label_InstancePath"),
+            device?.InstanceKeyHashText);
+        HardwareIdsLabel.Text = FormatLabelWithHash(
+            Localization.Get("Label_HardwareIds"),
+            device?.ModelKeyHashText);
+    }
+
+    private static string FormatLabelWithHash(string label, string? hashText) =>
+        string.IsNullOrEmpty(hashText)
+            ? label
+            : string.Format(Localization.Get("Label_WithHashFormat"), label, hashText);
+
     private void BindSelectedDeviceEditors()
     {
         var device = _vm.SelectedDevice;
+        UpdateDeviceIdLabels(device);
         if (device is null)
         {
             InstancePathBox.Text = string.Empty;

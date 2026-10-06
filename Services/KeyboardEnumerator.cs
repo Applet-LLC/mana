@@ -69,7 +69,14 @@ public static class KeyboardEnumerator
                     var friendly = GetRegistryPropertyString(deviceInfoSet, ref deviceInfoData, SpdrpFriendlyName)
                                    ?? GetRegistryPropertyString(deviceInfoSet, ref deviceInfoData, SpdrpDeviceDesc)
                                    ?? instanceId;
-                    var hardwareIds = GetRegistryPropertyMultiString(deviceInfoSet, ref deviceInfoData, SpdrpHardwareId);
+                    var hardwareIdList = GetRegistryPropertyMultiStringList(
+                        deviceInfoSet,
+                        ref deviceInfoData,
+                        SpdrpHardwareId);
+                    var firstHardwareId = hardwareIdList.Count > 0 ? hardwareIdList[0] : null;
+                    var hardwareIds = hardwareIdList.Count > 0
+                        ? string.Join("; ", hardwareIdList)
+                        : null;
                     var manufacturer = GetRegistryPropertyString(deviceInfoSet, ref deviceInfoData, SpdrpMfg);
                     var deviceOverride = DeviceOverrideStore.Read(instanceId);
                     var deviceName = ResolveDeviceName(
@@ -85,6 +92,9 @@ public static class KeyboardEnumerator
                         FriendlyName = friendly,
                         ShellFriendlyName = deviceName,
                         HardwareIds = hardwareIds,
+                        FirstHardwareId = firstHardwareId,
+                        InstanceKeyHashText = DeviceIdHash.TryFormatInstanceKey(instanceId),
+                        ModelKeyHashText = DeviceIdHash.TryFormatModelKey(firstHardwareId),
                         Manufacturer = manufacturer,
                         DeviceOverride = deviceOverride
                     });
@@ -477,15 +487,18 @@ public static class KeyboardEnumerator
         return Encoding.Unicode.GetString(buffer).TrimEnd('\0');
     }
 
-    private static string? GetRegistryPropertyMultiString(IntPtr deviceInfoSet, ref SpDevinfoData deviceInfoData, uint property)
+    private static IReadOnlyList<string> GetRegistryPropertyMultiStringList(
+        IntPtr deviceInfoSet,
+        ref SpDevinfoData deviceInfoData,
+        uint property)
     {
         var value = GetRegistryPropertyString(deviceInfoSet, ref deviceInfoData, property);
         if (string.IsNullOrEmpty(value))
         {
-            return value;
+            return Array.Empty<string>();
         }
 
-        return string.Join("; ", value.Split('\0', StringSplitOptions.RemoveEmptyEntries));
+        return value.Split('\0', StringSplitOptions.RemoveEmptyEntries);
     }
 
     private static Guid? GetDevicePropertyGuid(IntPtr deviceInfoSet, ref SpDevinfoData deviceInfoData, Devpropkey propertyKey)

@@ -20,11 +20,13 @@ Run `Install-mana.exe` from the distribution folder. Choose Japanese or English,
 - Japanese: `manaSetup-1.00-ja-JP.msi`
 - English: `manaSetup-1.00-en-US.msi`
 
-The MSI for the language you choose must sit in the same folder as `Install-mana.exe`. Files are installed to `C:\Program Files\mana`. The Start menu shortcut is created inside the **Applet** group, named "mana as setting keyboard layout".
+The MSI for the language you choose must sit in the same folder as `Install-mana.exe`. Files are installed to `C:\Program Files\applet\mana`. The Start menu shortcut is created inside the **Applet** group, named "mana as setting keyboard layout".
+
+The **Applet** group may not appear in the Start menu list. If you cannot find it, search for "mana" or "まな" in the Start menu (the shortcut itself is under the Applet folder).
 
 ## Use
 
-1. Start it from the Applet group in the Start menu. Start it with normal privileges.
+1. Start it from the Start menu (searching for "mana" or "まな" is often the easiest way). Start it with normal privileges.
 2. Connected keyboards are listed. Use Hide to keep a row out of the list.
 3. A device override writes type and subtype for the selected keyboard only.
 4. The global override is `i8042prt`. Apply a preset (Japanese 106, English 101/102, Korean) or type the numbers yourself. A device override takes priority over the global override.

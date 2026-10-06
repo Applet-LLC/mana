@@ -62,17 +62,19 @@
                 FontSize="14"
                 FontWeight="SemiBold"
                 Text="Memo" />
-            <!-- Pivot+WebView2 は高さ0／HWND未作成で空白になりやすいので Visibility 切替にする -->
+            <!-- WebView2 は Visibility 切替。表示/編集は常に押せる1ボタンでトグル -->
             <StackPanel
                 Grid.Row="1"
                 Orientation="Horizontal"
                 Spacing="8">
-                <Button
-                    x:Name="ViewModeButton"
-                    Click="ViewModeButton_Click" />
-                <Button
-                    x:Name="EditModeButton"
-                    Click="EditModeButton_Click" />
+                <Button x:Name="MemoModeButton" Click="MemoModeButton_Click" MinWidth="120">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock x:Name="MemoModeViewLabel" Text="表示" />
+                        <TextBlock Text="/" Opacity="0.7" />
+                        <TextBlock x:Name="MemoModeEditLabel" Text="編集" />
+                    </StackPanel>
+                </Button>
+                <Button x:Name="MemoFontButton" Click="MemoFontButton_Click" />
             </StackPanel>
             <Grid Grid.Row="2" MinHeight="180">
                 <WebView2

@@ -1,6 +1,7 @@
 using System.Text;
 using Mana.Services;
 using Markdig;
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -20,6 +21,9 @@ public sealed partial class KeyboardDetailWindow : Window
     private bool _closingHandled;
     private bool _viewMode = true;
     private string? _memoPreviewHtmlPath;
+    private KeyboardMemoUiSettings _memoUi = new();
+    private string _memoFontFamily = KeyboardMemoUiStore.DefaultFontFamily;
+    private double _memoFontSize = KeyboardMemoUiStore.DefaultFontSize;
 
     public KeyboardDetailWindow(
         string instancePath,
@@ -65,6 +69,11 @@ public sealed partial class KeyboardDetailWindow : Window
             LoadHistoryThumbnail();
         }
 
+        _memoUi = KeyboardMemoUiStore.Load(_instancePath);
+        _memoFontFamily = KeyboardMemoUiStore.ResolveFontFamily(_memoUi);
+        _memoFontSize = KeyboardMemoUiStore.ResolveFontSize(_memoUi);
+        ApplyMemoFontToEditors();
+
         _savedMemo = KeyboardNoteStore.LoadMemo(_instancePath);
         MemoEditBox.Text = _savedMemo;
         ApplyMemoMode(viewMode: true);
@@ -84,9 +93,11 @@ public sealed partial class KeyboardDetailWindow : Window
     {
         DriverStackLabel.Text = Localization.Get("Label_DriverStack");
         MemoLabel.Text = Localization.Get("Label_Memo");
-        ViewModeButton.Content = Localization.Get("Tab_MemoView");
-        EditModeButton.Content = Localization.Get("Tab_MemoEdit");
+        MemoModeViewLabel.Text = Localization.Get("Tab_MemoView");
+        MemoModeEditLabel.Text = Localization.Get("Tab_MemoEdit");
+        MemoFontButton.Content = Localization.Get("Button_MemoFont");
         OpenFolderButton.Content = Localization.Get("Button_OpenFolder");
+        UpdateMemoModeButtonChrome();
     }
 
     private void ApplyMemoMode(bool viewMode)
@@ -95,21 +106,106 @@ public sealed partial class KeyboardDetailWindow : Window
         MemoWebView.Visibility = viewMode ? Visibility.Visible : Visibility.Collapsed;
         MemoViewFallbackBox.Visibility = Visibility.Collapsed;
         MemoEditBox.Visibility = viewMode ? Visibility.Collapsed : Visibility.Visible;
-        ViewModeButton.IsEnabled = !viewMode;
-        EditModeButton.IsEnabled = viewMode;
+        UpdateMemoModeButtonChrome();
     }
 
-    private async void ViewModeButton_Click(object sender, RoutedEventArgs e)
+    private void UpdateMemoModeButtonChrome()
+    {
+        MemoModeViewLabel.FontWeight = _viewMode ? FontWeights.SemiBold : FontWeights.Normal;
+        MemoModeEditLabel.FontWeight = _viewMode ? FontWeights.Normal : FontWeights.SemiBold;
+        MemoModeViewLabel.Opacity = _viewMode ? 1.0 : 0.55;
+        MemoModeEditLabel.Opacity = _viewMode ? 0.55 : 1.0;
+    }
+
+    private async void MemoModeButton_Click(object sender, RoutedEventArgs e)
     {
         PersistMemoIfNeeded(forceAllow: true);
+        if (_viewMode)
+        {
+            ApplyMemoMode(viewMode: false);
+            return;
+        }
+
         ApplyMemoMode(viewMode: true);
         await ShowMemoViewAsync();
     }
 
-    private void EditModeButton_Click(object sender, RoutedEventArgs e)
+    private async void MemoFontButton_Click(object sender, RoutedEventArgs e)
     {
-        PersistMemoIfNeeded(forceAllow: true);
-        ApplyMemoMode(viewMode: false);
+        var familyCombo = new ComboBox
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            IsEditable = true,
+            ItemsSource = KeyboardMemoUiStore.GetInstalledFontFamilies()
+        };
+        familyCombo.Text = _memoFontFamily;
+        if (familyCombo.Items.Contains(_memoFontFamily))
+        {
+            familyCombo.SelectedItem = _memoFontFamily;
+        }
+
+        var sizeBox = new NumberBox
+        {
+            Minimum = 8,
+            Maximum = 48,
+            SmallChange = 1,
+            LargeChange = 2,
+            SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline,
+            Value = _memoFontSize
+        };
+
+        var panel = new StackPanel { Spacing = 8 };
+        panel.Children.Add(new TextBlock { Text = Localization.Get("Label_MemoFontFamily") });
+        panel.Children.Add(familyCombo);
+        panel.Children.Add(new TextBlock { Text = Localization.Get("Label_MemoFontSize"), Margin = new Thickness(0, 8, 0, 0) });
+        panel.Children.Add(sizeBox);
+
+        var dialog = new ContentDialog
+        {
+            Title = Localization.Get("Dialog_MemoFontTitle"),
+            Content = panel,
+            PrimaryButtonText = Localization.Get("Button_MemoFontApply"),
+            CloseButtonText = Localization.Get("Button_MemoFontCancel"),
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = Content.XamlRoot
+        };
+
+        var result = await dialog.ShowAsync();
+        if (result != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        var family = familyCombo.SelectedItem as string ?? familyCombo.Text;
+        if (string.IsNullOrWhiteSpace(family))
+        {
+            family = KeyboardMemoUiStore.DefaultFontFamily;
+        }
+
+        var size = double.IsNaN(sizeBox.Value) ? KeyboardMemoUiStore.DefaultFontSize : sizeBox.Value;
+        _memoUi = new KeyboardMemoUiSettings
+        {
+            FontFamily = family.Trim(),
+            FontSize = size
+        };
+        _memoFontFamily = KeyboardMemoUiStore.ResolveFontFamily(_memoUi);
+        _memoFontSize = KeyboardMemoUiStore.ResolveFontSize(_memoUi);
+        KeyboardMemoUiStore.Save(_instancePath, _memoUi);
+        ApplyMemoFontToEditors();
+
+        if (_viewMode)
+        {
+            await ShowMemoViewAsync();
+        }
+    }
+
+    private void ApplyMemoFontToEditors()
+    {
+        var family = new FontFamily(_memoFontFamily);
+        MemoEditBox.FontFamily = family;
+        MemoEditBox.FontSize = _memoFontSize;
+        MemoViewFallbackBox.FontFamily = family;
+        MemoViewFallbackBox.FontSize = _memoFontSize;
     }
 
     private void BuildStackRow()
@@ -289,10 +385,12 @@ public sealed partial class KeyboardDetailWindow : Window
     {
         var markdown = MemoEditBox.Text ?? string.Empty;
         var htmlBody = Markdown.ToHtml(markdown, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
+        var cssFontFamily = EscapeCssFontFamily(_memoFontFamily);
+        var cssFontSize = _memoFontSize.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
         var html =
             "<!DOCTYPE html><html><head><meta charset=\"utf-8\"/>" +
             "<style>" +
-            "body { font-family: 'Segoe UI', 'Yu Gothic UI', 'Meiryo UI', sans-serif; font-size: 14px; margin: 12px; color: #1a1a1a; background: #fafafa; }" +
+            $"body {{ font-family: {cssFontFamily}, 'Segoe UI', 'Yu Gothic UI', 'Meiryo UI', sans-serif; font-size: {cssFontSize}px; margin: 12px; color: #1a1a1a; background: #fafafa; }}" +
             "pre { background: #f0f0f0; padding: 8px; overflow-x: auto; }" +
             "code { font-family: Consolas, monospace; }" +
             "a { color: #0067c0; }" +
@@ -340,6 +438,12 @@ public sealed partial class KeyboardDetailWindow : Window
         MemoWebView.Visibility = Visibility.Collapsed;
         MemoViewFallbackBox.Text = markdown;
         MemoViewFallbackBox.Visibility = Visibility.Visible;
+    }
+
+    private static string EscapeCssFontFamily(string fontFamily)
+    {
+        var escaped = (fontFamily ?? string.Empty).Replace("\\", "\\\\").Replace("'", "\\'");
+        return $"'{escaped}'";
     }
 
     private void OpenFolderButton_Click(object sender, RoutedEventArgs e)

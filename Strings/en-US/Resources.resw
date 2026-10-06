@@ -6,7 +6,7 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
 
   <data name="AppTitle" xml:space="preserve"><value>mana as setting keyboard layout</value></data>
-  <data name="Button_Reload" xml:space="preserve"><value>Reload</value></data>
+  <data name="Button_Reload" xml:space="preserve"><value>Refresh to latest</value></data>
   <data name="Button_OpenSettings" xml:space="preserve"><value>Open language settings</value></data>
   <data name="Button_ShowHidden" xml:space="preserve"><value>Show hidden</value></data>
   <data name="Button_HideHidden" xml:space="preserve"><value>Hide hidden</value></data>
@@ -31,6 +31,7 @@
 
   <data name="Label_InstancePath" xml:space="preserve"><value>Device instance path</value></data>
   <data name="Label_HardwareIds" xml:space="preserve"><value>Hardware IDs</value></data>
+  <data name="Label_WithHashFormat" xml:space="preserve"><value>{0}  Hash: {1}</value></data>
   <data name="Label_Preset" xml:space="preserve"><value>Country / layout preset</value></data>
   <data name="Label_Type" xml:space="preserve"><value>Type</value></data>
   <data name="Label_Subtype" xml:space="preserve"><value>Subtype</value></data>
