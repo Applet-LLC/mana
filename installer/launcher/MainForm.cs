@@ -36,12 +36,13 @@ internal sealed class MainForm : Form
         {
         }
 
+        const int contentWidth = 440;
+
         _languageLink = new LinkLabel
         {
             AutoSize = true,
             TextAlign = ContentAlignment.MiddleRight,
-            Anchor = AnchorStyles.Top | AnchorStyles.Right,
-            Margin = new Padding(0, 0, 0, 8),
+            Margin = new Padding(0),
         };
         _languageLink.Click += (_, _) =>
         {
@@ -52,40 +53,48 @@ internal sealed class MainForm : Form
         var languageRow = new FlowLayoutPanel
         {
             FlowDirection = FlowDirection.RightToLeft,
-            AutoSize = true,
-            AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            Dock = DockStyle.Top,
+            WrapContents = false,
+            AutoSize = false,
+            Width = contentWidth,
+            Height = 22,
+            Margin = new Padding(0, 0, 0, 8),
+            Padding = new Padding(0),
         };
         languageRow.Controls.Add(_languageLink);
 
         _description = new Label
         {
             AutoSize = true,
-            MaximumSize = new Size(440, 0),
+            MaximumSize = new Size(contentWidth, 0),
             Margin = new Padding(0, 8, 0, 12),
         };
 
         _statusLabel = new Label
         {
             AutoSize = true,
-            MaximumSize = new Size(440, 0),
+            MaximumSize = new Size(contentWidth, 0),
             Margin = new Padding(0, 0, 0, 12),
         };
 
-        _installButton = new Button { Margin = new Padding(0, 0, 8, 0) };
+        // 既定 Margin(3) だと FlowLayoutPanel 内で縦位置がずれるため明示する
+        _installButton = new Button { Margin = new Padding(0), AutoSize = false };
         _installButton.Click += OnInstallClicked;
-        _cancelButton = new Button();
+        _cancelButton = new Button { Margin = new Padding(0), AutoSize = false };
         _cancelButton.Click += (_, _) => Close();
 
+        // RightToLeft: 先に追加したコントロールが右端（[インストール][キャンセル] でキャンセルが右）
         var buttonRow = new FlowLayoutPanel
         {
-            FlowDirection = FlowDirection.LeftToRight,
-            AutoSize = true,
+            FlowDirection = FlowDirection.RightToLeft,
             WrapContents = false,
+            AutoSize = false,
+            Width = contentWidth,
             Margin = new Padding(0),
+            Padding = new Padding(0),
         };
-        buttonRow.Controls.Add(_installButton);
+        _installButton.Margin = new Padding(0, 0, 8, 0);
         buttonRow.Controls.Add(_cancelButton);
+        buttonRow.Controls.Add(_installButton);
 
         var root = new FlowLayoutPanel
         {
@@ -143,11 +152,19 @@ internal sealed class MainForm : Form
         Size shared = new(
             Math.Max(_installButton.PreferredSize.Width, _cancelButton.PreferredSize.Width),
             Math.Max(_installButton.PreferredSize.Height, _cancelButton.PreferredSize.Height));
+        // 最低でも標準ダイアログボタン相当の高さを確保
+        shared.Height = Math.Max(shared.Height, 28);
 
         foreach (Button b in new[] { _installButton, _cancelButton })
         {
             b.AutoSize = false;
             b.Size = shared;
+            b.Margin = b == _installButton ? new Padding(0, 0, 8, 0) : new Padding(0);
+        }
+
+        if (_installButton.Parent is FlowLayoutPanel row)
+        {
+            row.Height = shared.Height;
         }
     }
 
