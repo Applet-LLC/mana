@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.Build.NoTargets/3.7.56">
+  <!--
+    ランチャー（Install-mana.exe）の単一ファイル publish を作る。ソリューションのフルビルドで
+    mana.Sign.Binaries（署名・dist へのコピー）より前に走らせるためのプロジェクト。
+    VS の通常 Build は publish を作らないため、これが無いと古い publish を署名・配布してしまう。
+    Build-Installer.ps1 を直接呼ぶと、その中でこのソリューションの署名プロジェクトまで走って
+    循環するため、ここでは Build-Installer.ps1 のランチャー publish と同じコマンドだけを実行する。
+    Release 構成のみ（Debug のビルドでは publish しない）。
+  -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <InstallerDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\installer'))</InstallerDir>
+    <LauncherProj>$(InstallerDir)\launcher\Install-mana.csproj</LauncherProj>
+  </PropertyGroup>
+
+  <Target Name="PublishLauncher" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <Message Importance="high" Text="mana.Launcher.Publish: publishing Install-mana (single file)..." />
+    <Exec Command="dotnet publish &quot;$(LauncherProj)&quot; -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -nologo -v:m"
+          LogStandardErrorAsError="true" />
+    <Error Condition="!Exists('$(InstallerDir)\launcher\bin\Release\net9.0-windows\win-x64\publish\Install-mana.exe')"
+           Text="Install-mana.exe was not produced by publish." />
+  </Target>
+</Project>
