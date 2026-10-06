@@ -99,7 +99,7 @@
       <Files Include="$(var.PublishDir)**">
         <Exclude Files="$(var.PublishDir)mana.exe" />
         <Exclude Files="$(var.PublishDir)**\*.pdb" />
-        <Exclude Files="$(var.PublishDir)KeyboardLayoutTool.pri" />
+        <Exclude Files="$(var.PublishDir)KeyboardLayoutTool.*" />
       </Files>
     </ComponentGroup>
   </Package>
