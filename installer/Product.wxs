@@ -35,6 +35,7 @@
 
     <Icon Id="ICO_App" SourceFile="$(var.AppIcon)" />
     <Property Id="ARPPRODUCTICON" Value="ICO_App" />
+    <Property Id="DISABLEADVTSHORTCUTS" Value="1" />
 
     <WixVariable Id="WixUILicenseRtf" Value="$(var.LicenseRtfFile)" />
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
@@ -57,28 +58,40 @@
         <Directory Id="INSTALLFOLDER" Name="mana" />
       </Directory>
     </StandardDirectory>
+    <!-- スタートメニュー: applet\<製品名>（kasane と同じ構成。applet フォルダは当社の他アプリと共有） -->
     <StandardDirectory Id="ProgramMenuFolder">
-      <Directory Id="AppletStartMenuFolder" Name="Applet" />
+      <Directory Id="AppletStartMenuFolder" Name="applet">
+        <Directory Id="ProductStartMenuFolder" Name="!(loc.ProductName)" />
+      </Directory>
     </StandardDirectory>
 
     <Feature Id="F_Main" Title="!(loc.ProductName)" Level="1" AllowAbsent="no">
       <ComponentRef Id="CMP_AppExe" />
+      <ComponentRef Id="CMP_Shortcuts" />
       <ComponentGroupRef Id="CG_AppFiles" />
     </Feature>
 
     <DirectoryRef Id="INSTALLFOLDER">
       <Component Id="CMP_AppExe">
-        <File Id="FIL_AppExe" Source="$(var.PublishDir)mana.exe" KeyPath="yes">
-          <Shortcut Id="SC_StartMenu"
-                    Directory="AppletStartMenuFolder"
-                    Name="!(loc.ShortcutName)"
-                    Description="!(loc.ShortcutDescription)"
-                    WorkingDirectory="INSTALLFOLDER"
-                    Icon="ICO_App"
-                    Advertise="no" />
-        </File>
-        <RemoveFolder Id="RM_AppletStartMenu" Directory="AppletStartMenuFolder" On="uninstall" />
+        <File Id="FIL_AppExe" Source="$(var.PublishDir)mana.exe" KeyPath="yes" />
         <RemoveFolder Id="RM_AppletProgramFolder" Directory="AppletProgramFolder" On="uninstall" />
+      </Component>
+    </DirectoryRef>
+
+    <!-- ショートカット専用コンポーネント（HKCU の値を KeyPath にする。kasane と同じ方式）。 -->
+    <DirectoryRef Id="ProductStartMenuFolder">
+      <Component Id="CMP_Shortcuts">
+        <Shortcut Id="SC_StartMenu"
+                  Name="!(loc.ShortcutName)"
+                  Description="!(loc.ShortcutDescription)"
+                  Target="[INSTALLFOLDER]mana.exe"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="ICO_App" />
+        <RemoveFolder Id="RM_ProductStartMenu" Directory="ProductStartMenuFolder" On="uninstall" />
+        <!-- applet フォルダは他のアプリと共有するので、空のときだけ消える。 -->
+        <RemoveFolder Id="RM_AppletStartMenu" Directory="AppletStartMenuFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\applet\mana" Name="Installed"
+                       Type="integer" Value="1" KeyPath="yes" />
       </Component>
     </DirectoryRef>
 
