@@ -63,6 +63,8 @@
       <_DistClean Include="$(DistDir)\Install-mana.exe" />
     </ItemGroup>
     <Delete Files="@(_DistClean)" TreatErrorsAsWarnings="true" />
+    <!-- 古い単一ファイル publish が残ると、次の署名・配布でそれを拾ってしまうため一緒に消す。 -->
+    <RemoveDir Directories="$(LauncherDir)\Release\net9.0-windows\win-x64\publish" ContinueOnError="true" />
     <Message Importance="high" Text="mana.Sign.Binaries: cleaned distribution artifacts in $(DistDir)" Condition="'@(_DistClean)' != ''" />
   </Target>
 </Project>

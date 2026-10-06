@@ -1,24 +1,15 @@
-# Resolve Install-mana.exe path (prefer single-file publish, else largest build output).
+# Resolve Install-mana.exe path: the single-file publish output only.
+# The plain build output (apphost) does not run standalone, and picking by size can select a stale
+# publish left over from an earlier run, so only the publish output is accepted; if it is missing, stop.
 param(
     [Parameter(Mandatory = $true)][string] $LauncherDir
 )
 
 $ErrorActionPreference = "Stop"
 $root = $LauncherDir.Trim().TrimEnd('\', '/', '"')
-$candidates = @(
-    (Join-Path $root "Release\net9.0-windows\win-x64\publish\Install-mana.exe"),
-    (Join-Path $root "x64\Release\net9.0-windows\win-x64\Install-mana.exe"),
-    (Join-Path $root "Release\net9.0-windows\win-x64\Install-mana.exe")
-)
-$items = @()
-foreach ($c in $candidates) {
-    if (Test-Path -LiteralPath $c) {
-        $items += Get-Item -LiteralPath $c
-    }
+$publishExe = Join-Path $root "Release\net9.0-windows\win-x64\publish\Install-mana.exe"
+if (-not (Test-Path -LiteralPath $publishExe)) {
+    throw "Install-mana.exe (single-file publish) not found: $publishExe. Run Build-Installer.ps1, or: dotnet publish installer\launcher\Install-mana.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true"
 }
-if ($items.Count -eq 0) {
-    throw "Install-mana.exe not found under launcher\bin. Build/Publish Install-mana first."
-}
-$pick = $items | Sort-Object Length -Descending | Select-Object -First 1
-Write-Output $pick.FullName
+Write-Output (Get-Item -LiteralPath $publishExe).FullName
 exit 0

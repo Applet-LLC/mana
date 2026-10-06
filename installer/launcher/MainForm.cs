@@ -42,7 +42,8 @@ internal sealed class MainForm : Form
         {
             AutoSize = true,
             TextAlign = ContentAlignment.MiddleRight,
-            Margin = new Padding(0),
+            Anchor = AnchorStyles.Top | AnchorStyles.Right,
+            Margin = new Padding(0, 0, 0, 8),
         };
         _languageLink.Click += (_, _) =>
         {
@@ -53,12 +54,9 @@ internal sealed class MainForm : Form
         var languageRow = new FlowLayoutPanel
         {
             FlowDirection = FlowDirection.RightToLeft,
-            WrapContents = false,
-            AutoSize = false,
-            Width = contentWidth,
-            Height = 22,
-            Margin = new Padding(0, 0, 0, 8),
-            Padding = new Padding(0),
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Dock = DockStyle.Top,
         };
         languageRow.Controls.Add(_languageLink);
 
@@ -73,6 +71,7 @@ internal sealed class MainForm : Form
         {
             AutoSize = true,
             MaximumSize = new Size(contentWidth, 0),
+            MinimumSize = new Size(contentWidth, 0),
             Margin = new Padding(0, 0, 0, 12),
         };
 
@@ -82,15 +81,14 @@ internal sealed class MainForm : Form
         _cancelButton = new Button { Margin = new Padding(0), AutoSize = false };
         _cancelButton.Click += (_, _) => Close();
 
-        // RightToLeft: 先に追加したコントロールが右端（[インストール][キャンセル] でキャンセルが右）
+        // RightToLeft: 先に追加したコントロールが右端（[インストール][キャンセル] でキャンセルが右）。
+        // 行は AutoSize + Dock.Top で root の幅いっぱいに広がり、ボタンが右端に寄る（kasane-launcher と同じ構成）。
         var buttonRow = new FlowLayoutPanel
         {
             FlowDirection = FlowDirection.RightToLeft,
-            WrapContents = false,
-            AutoSize = false,
-            Width = contentWidth,
-            Margin = new Padding(0),
-            Padding = new Padding(0),
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Dock = DockStyle.Top,
         };
         _installButton.Margin = new Padding(0, 0, 8, 0);
         buttonRow.Controls.Add(_cancelButton);
@@ -160,11 +158,6 @@ internal sealed class MainForm : Form
             b.AutoSize = false;
             b.Size = shared;
             b.Margin = b == _installButton ? new Padding(0, 0, 8, 0) : new Padding(0);
-        }
-
-        if (_installButton.Parent is FlowLayoutPanel row)
-        {
-            row.Height = shared.Height;
         }
     }
 
