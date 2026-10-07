@@ -358,6 +358,8 @@ public sealed partial class MainPage : Page
         ApplyDeviceButton.Content = Localization.Get("Button_ApplyDevice");
         ClearDeviceButton.Content = Localization.Get("Button_ClearDevice");
         ElevateButton.Content = Localization.Get("Button_RestartElevated");
+        GlobalActiveWarningButton.Content = Localization.Get("Button_WarnGlobalActive");
+        AcpiPs2WarningButton.Content = Localization.Get("Button_WarnAcpiPs2");
         ElevateButton.Visibility = ElevationService.IsElevated()
             ? Visibility.Collapsed
             : Visibility.Visible;
@@ -699,6 +701,8 @@ public sealed partial class MainPage : Page
             EffectiveValueText.Text = string.Empty;
             DeviceTypeBox.Text = string.Empty;
             DeviceSubtypeBox.Text = string.Empty;
+            GlobalActiveWarningButton.Visibility = Visibility.Collapsed;
+            AcpiPs2WarningButton.Visibility = Visibility.Collapsed;
             return;
         }
 
@@ -718,6 +722,54 @@ public sealed partial class MainPage : Page
         DeviceTypeBox.Text = device.EditType?.ToString() ?? string.Empty;
         DeviceSubtypeBox.Text = device.EditSubtype?.ToString() ?? string.Empty;
         SelectComboPreset(DevicePresetCombo, device.SelectedPreset);
+        GlobalActiveWarningButton.Visibility = _vm.IsGlobalLayoutActive ? Visibility.Visible : Visibility.Collapsed;
+        AcpiPs2WarningButton.Visibility = device.IsAcpiPs2 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void GlobalActiveWarningButton_Click(object sender, RoutedEventArgs e)
+    {
+        var message = Localization.Get("Dialog_WarnGlobalActiveMessage");
+        if (_vm.SelectedDevice is { HasDeviceOverride: true } device)
+        {
+            message += string.Format(
+                Localization.Get("Dialog_WarnGlobalActiveDeviceFormat"),
+                device.DeviceType?.ToString() ?? "-",
+                device.DeviceSubtype?.ToString() ?? "-");
+        }
+
+        ShowWarningDialog(Localization.Get("Dialog_WarnGlobalActiveTitle"), message, showWebsite: false);
+    }
+
+    private void AcpiPs2WarningButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowWarningDialog(
+            Localization.Get("Dialog_WarnAcpiPs2Title"),
+            Localization.Get("Dialog_WarnAcpiPs2Message"),
+            showWebsite: true);
+    }
+
+    private void ShowWarningDialog(string title, string message, bool showWebsite)
+    {
+        var panel = new StackPanel { Spacing = 8 };
+        panel.Children.Add(new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap });
+        if (showWebsite)
+        {
+            panel.Children.Add(new HyperlinkButton
+            {
+                Content = "https://appletllc.com/",
+                NavigateUri = new Uri("https://appletllc.com/")
+            });
+        }
+
+        var dialog = new ContentDialog
+        {
+            Title = title,
+            Content = new ScrollViewer { Content = panel },
+            CloseButtonText = Localization.Get("Button_Close"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = XamlRoot
+        };
+        _ = dialog.ShowAsync();
     }
 
     private void SyncGlobalEditorsFromVm()

@@ -54,7 +54,7 @@ The **Applet** group may not appear in the Start menu list. If you cannot find i
 | Values | `KeyboardTypeOverride`, `KeyboardSubtypeOverride` | `OverrideKeyboardType`, `OverrideKeyboardSubtype` (some presets also write `OverrideKeyboardIdentifier` and `LayerDriver JPN` / `LayerDriver KOR`) |
 | How to apply | USB: unplug and replug. Built-in: restart | Restart |
 
-**A device override takes effect only when no global override is set.** While a global override remains, device overrides are not applied, even for USB or Bluetooth keyboards. To set layouts per device, first click **Clear global overrides**. If the top of the window says "Prepared", no global override is set.
+**A device override takes effect only when no global override is set.** While a global override remains, device overrides are not applied, even for USB or Bluetooth keyboards. To set layouts per device, first click **Clear global overrides**. If the top of the window says "Prepared", no global override is set. While a global override is active, a **⚠ Global override is active** button appears in the **Device override** section; click it for an explanation.
 
 The global override is the same setting as **Hardware keyboard layout** under Windows Settings → Time & language → Language & region → language options. Saving a global override turns off "Use connected keyboard layout" and fixes the layout for the whole PC. Clearing the global override returns to the same state as "Use connected keyboard layout". The app also has a button that opens this Windows settings page.
 
@@ -162,7 +162,7 @@ As a result, the following combination may not be possible:
 
 If you clear the global override so you can set the external keyboard per device, the built-in keyboard becomes US layout. The only way to make the built-in keyboard Japanese (JIS) is to set the global override to **Japanese (JIS)**.
 
-To check whether a keyboard is PS/2, select it in the list and see whether its **Device instance path** starts with `ACPI\`. This limitation does not apply to laptops whose built-in keyboard is connected as a HID device (for example over USB or I2C).
+To check whether a keyboard is PS/2, select it in the list and see whether its **Device instance path** starts with `ACPI\`. When you select such a keyboard, a **⚠ PS/2 keyboard (ACPI)** button appears in the **Device override** section; click it for an explanation of this limitation. This limitation does not apply to laptops whose built-in keyboard is connected as a HID device (for example over USB or I2C).
 
 This limitation comes from how Windows works. It is expected to go away if a future version of Windows improves this behavior.
 

@@ -79,6 +79,20 @@ public static class Localization
         ["Layout_CustomFormat"] = ("Custom (Type={0}, Subtype={1})", "カスタム (Type={0}, Subtype={1})"),
         ["Status_LoadedFormat"] = ("Loaded {0} keyboard device(s).", "{0} 件のキーボードデバイスを読み込みました。"),
         ["Status_DeviceApplied"] = ("Device override saved. Unplug/replug USB keyboards or reboot for built-in keyboards.", "デバイス設定を保存しました。USB は抜き差し、内蔵は再起動で反映されます。"),
+        ["Status_DeviceAppliedGlobalActive"] = ("Device override saved, but it has no effect while the global override is active. Clear the global override to use it.", "デバイス設定を保存しましたが、グローバル設定が有効なため反映されません。反映するにはグローバル設定を削除してください。"),
+        ["Button_WarnGlobalActive"] = ("\u26A0 Global override is active", "\u26A0 グローバル設定が有効です"),
+        ["Button_WarnAcpiPs2"] = ("\u26A0 PS/2 keyboard (ACPI)", "\u26A0 PS/2 キーボード（ACPI）"),
+        ["Dialog_WarnGlobalActiveTitle"] = ("Global override is active", "グローバル設定が有効です"),
+        ["Dialog_WarnGlobalActiveMessage"] = (
+            "A global override (i8042prt OverrideKeyboardType / Subtype) is set, so every keyboard uses the global layout. While it is set, device overrides can be saved to the registry but have no effect, even for USB or Bluetooth keyboards.\n\nTo use device overrides, click “Clear global overrides” and restart Windows.",
+            "グローバル設定（i8042prt の OverrideKeyboardType / Subtype）が設定されているため、すべてのキーボードがグローバル設定の配列で扱われます。グローバル設定がある間は、デバイスごとの設定をレジストリに保存できますが、USB や Bluetooth のキーボードでも反映されません。\n\nデバイスごとの設定を使うには、「グローバル設定を削除」を押してから Windows を再起動してください。"),
+        ["Dialog_WarnGlobalActiveDeviceFormat"] = (
+            "\n\nThis keyboard has a saved device override (Type={0}, Subtype={1}) that is currently not applied.",
+            "\n\nこのキーボードにはデバイスごとの設定（Type={0}, Subtype={1}）が保存されていますが、現在は反映されていません。"),
+        ["Dialog_WarnAcpiPs2Title"] = ("PS/2 keyboard connected through ACPI", "ACPI 接続の PS/2 キーボード"),
+        ["Dialog_WarnAcpiPs2Message"] = (
+            "This keyboard is a PS/2 keyboard connected through ACPI (its device instance path starts with ACPI\\). Some laptops connect their built-in keyboard this way.\n\nFor such keyboards, the layout may be determined only by the global override, and device overrides may have no effect. In addition, when the global override is cleared (“Use connected keyboard layout”), the keyboard may be recognized as US layout (Enhanced 101/102), because it cannot report its keyboard type through Plug and Play.\n\nAs a result, you may not be able to keep this keyboard on a layout such as Japanese (JIS) while setting an external keyboard to a different layout.\n\nIf you know a way to make this work, please let us know through our website.",
+            "このキーボードは、ACPI 経由で接続された PS/2 キーボードです（デバイスインスタンスパスが ACPI\\ で始まります）。ノート PC の内蔵キーボードで使われることがある接続方式です。\n\nこのようなキーボードでは、配列がグローバル設定だけで決まり、デバイスごとの設定が効かないことがあります。また、プラグ アンド プレイでキーボードの種類を判別できないため、グローバル設定を削除する（「接続済みキーボード レイアウトを使用する」状態にする）と、US 配列（拡張 101/102）として認識されることがあります。\n\nその結果、このキーボードを日本語（JIS）などの配列にしたまま、外付けキーボードを別の配列に設定できない場合があります。\n\nうまく設定できた例や方法をご存じでしたら、Web サイトからお知らせください。"),
         ["Status_DeviceCleared"] = ("Device override cleared. Reconnect or reboot to apply.", "デバイス設定を削除しました。再接続または再起動で反映されます。"),
         ["Status_GlobalPresetApplied"] = ("Global preset applied (including Identifier/LayerDriver as defined). Reboot required.", "グローバルプリセットを適用しました（Identifier / LayerDriver 含む）。再起動が必要です。"),
         ["Status_GlobalApplied"] = ("Global values saved. Reboot required.", "グローバル値を保存しました。再起動が必要です。"),

@@ -164,6 +164,19 @@
                     <TextBlock x:Name="DeviceDetailHeader" Style="{StaticResource SectionHeader}" />
                     <TextBlock x:Name="EffectiveLabel" Style="{StaticResource FieldLabel}" />
                     <TextBlock x:Name="EffectiveValueText" TextWrapping="Wrap" />
+                    <!-- デバイスごとの設定が反映されない状況の警告。押すと説明ダイアログを開く。 -->
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button
+                            x:Name="GlobalActiveWarningButton"
+                            Click="GlobalActiveWarningButton_Click"
+                            Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                            Visibility="Collapsed" />
+                        <Button
+                            x:Name="AcpiPs2WarningButton"
+                            Click="AcpiPs2WarningButton_Click"
+                            Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                            Visibility="Collapsed" />
+                    </StackPanel>
                     <TextBlock x:Name="DevicePresetLabel" Style="{StaticResource FieldLabel}" />
                     <ComboBox
                         x:Name="DevicePresetCombo"

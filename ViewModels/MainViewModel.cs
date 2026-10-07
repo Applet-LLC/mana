@@ -65,6 +65,13 @@ public sealed class KeyboardItemViewModel : INotifyPropertyChanged
     public string OpenDetailTooltip => Localization.Get("Tooltip_OpenDeviceDetail");
     public int? DeviceType { get; private set; }
     public int? DeviceSubtype { get; private set; }
+    public bool HasDeviceOverride => DeviceType.HasValue || DeviceSubtype.HasValue;
+
+    /// <summary>
+    /// ACPI 経由の PS/2 キーボード。配列がグローバル設定だけで決まり、
+    /// デバイスごとの設定が効かないことがある。
+    /// </summary>
+    public bool IsAcpiPs2 => InstancePath.StartsWith(@"ACPI\", StringComparison.OrdinalIgnoreCase);
 
     public bool IsHidden
     {
@@ -137,17 +144,18 @@ public sealed class KeyboardItemViewModel : INotifyPropertyChanged
 
     public void RefreshEffective(GlobalOverrideValues global)
     {
-        if (DeviceType.HasValue || DeviceSubtype.HasValue)
-        {
-            EffectiveSource = OverrideSource.Device;
-            EffectiveType = DeviceType;
-            EffectiveSubtype = DeviceSubtype;
-        }
-        else if (global.Type.HasValue || global.Subtype.HasValue)
+        // グローバル Type/Subtype があると、デバイスごとの値はレジストリに書けても反映されない。
+        if (global.Type.HasValue || global.Subtype.HasValue)
         {
             EffectiveSource = OverrideSource.Global;
             EffectiveType = global.Type;
             EffectiveSubtype = global.Subtype;
+        }
+        else if (HasDeviceOverride)
+        {
+            EffectiveSource = OverrideSource.Device;
+            EffectiveType = DeviceType;
+            EffectiveSubtype = DeviceSubtype;
         }
         else
         {
@@ -181,6 +189,7 @@ public sealed class KeyboardItemViewModel : INotifyPropertyChanged
         EditSubtype = subtype;
         OnPropertyChanged(nameof(DeviceType));
         OnPropertyChanged(nameof(DeviceSubtype));
+        OnPropertyChanged(nameof(HasDeviceOverride));
         RefreshEffective(global);
     }
 
@@ -302,6 +311,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public string LanguageButtonLabel => LanguageService.ToggleButtonLabel;
 
+    /// <summary>グローバル Type/Subtype が設定済み（デバイスごとの設定は反映されない状態）。</summary>
+    public bool IsGlobalLayoutActive => _global.Type.HasValue || _global.Subtype.HasValue;
+
     public void Reload()
     {
         _hiddenPaths = HiddenDeviceStore.Load();
@@ -357,7 +369,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
             DeviceOverrideStore.Write(SelectedDevice.InstancePath, SelectedDevice.EditType, SelectedDevice.EditSubtype);
             SelectedDevice.ApplyDeviceValues(SelectedDevice.EditType, SelectedDevice.EditSubtype, _global);
             AppSessionState.RegistryChanged = true;
-            StatusMessage = Localization.Get("Status_DeviceApplied");
+            StatusMessage = IsGlobalLayoutActive
+                ? Localization.Get("Status_DeviceAppliedGlobalActive")
+                : Localization.Get("Status_DeviceApplied");
         }
         catch (Exception ex)
         {
