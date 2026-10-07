@@ -87,6 +87,7 @@ New-Item -ItemType Directory -Force $distDir | Out-Null
 $distDocs = @(
     (Join-Path $projectDir 'README.md'),
     (Join-Path $projectDir 'README.en.md'),
+    (Join-Path $projectDir 'THIRD-PARTY-NOTICES.txt'),
     (Join-Path $installerDir 'License\License.en-US.rtf'),
     (Join-Path $installerDir 'License\License.ja-JP.rtf')
 )
@@ -134,5 +135,6 @@ Write-Host "Created: $(Join-Path $distDir 'manaSetup-1.00-en-US.msi')"
 Write-Host "Created: $(Join-Path $distDir 'manaSetup-1.00-ja-JP.msi')"
 Write-Host "Created: $(Join-Path $distDir 'README.md')"
 Write-Host "Created: $(Join-Path $distDir 'README.en.md')"
+Write-Host "Created: $(Join-Path $distDir 'THIRD-PARTY-NOTICES.txt')"
 Write-Host "Created: $(Join-Path $distDir 'License.en-US.rtf')"
 Write-Host "Created: $(Join-Path $distDir 'License.ja-JP.rtf')"

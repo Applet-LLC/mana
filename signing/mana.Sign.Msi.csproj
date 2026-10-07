@@ -26,6 +26,7 @@
     <ItemGroup>
       <_DistDoc Include="$(RepoRoot)\README.md" />
       <_DistDoc Include="$(RepoRoot)\README.en.md" />
+      <_DistDoc Include="$(RepoRoot)\THIRD-PARTY-NOTICES.txt" />
       <_DistDoc Include="$(InstallerDir)\License\License.en-US.rtf" />
       <_DistDoc Include="$(InstallerDir)\License\License.ja-JP.rtf" />
     </ItemGroup>

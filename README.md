@@ -8,7 +8,7 @@ Windows 11 で、接続中のキーボードがどのハードウェア配列（
 - 英語配列のキーボードを、PC 全体で英語配列として認識させたい
 - キーボードごとの特徴や設定内容を、メモや写真で残しておきたい
 
-ソースコードは [MIT License](LICENSE) で公開しています。署名付きインストーラーとバイナリの利用条件は、インストール時に表示される使用許諾契約に従います。
+ソースコードは [MIT License](LICENSE) で公開しています。署名付きインストーラーとバイナリの利用条件は、インストール時に表示される使用許諾契約に従います。本ソフトウェアに含まれる第三者のソフトウェア（Markdig、Windows App SDK、WebView2 など）のライセンスは、[THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt) を参照してください。このファイルはインストール先フォルダにも配置されます。
 
 ## 必要な環境
 
@@ -160,5 +160,7 @@ Visual Studio 2022 で、ソリューションを一括ビルドできます（�
 - 成果物の出力先: `installer\dist`
 - バージョン: `mana.csproj` 内の内部バージョンは `1.0.0`、配布ファイル名のバージョンは `1.00`
 - 署名: EV 証明書（Subject: Applet LLC）が見つからない場合は、署名を省略してビルドを続けます
+
+NuGet パッケージを追加・更新したときは、[THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt) も更新してください。
 
 設計の詳細は [ARCHITECTURE.md](ARCHITECTURE.md) を参照してください。
