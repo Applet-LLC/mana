@@ -54,7 +54,7 @@ The **Applet** group may not appear in the Start menu list. If you cannot find i
 | Values | `KeyboardTypeOverride`, `KeyboardSubtypeOverride` | `OverrideKeyboardType`, `OverrideKeyboardSubtype` (some presets also write `OverrideKeyboardIdentifier` and `LayerDriver JPN` / `LayerDriver KOR`) |
 | How to apply | USB: unplug and replug. Built-in: restart | Restart |
 
-If both are set, the device override takes priority for that keyboard.
+**A device override takes effect only when no global override is set.** While a global override remains, device overrides are not applied, even for USB or Bluetooth keyboards. To set layouts per device, first click **Clear global overrides**. If the top of the window says "Prepared", no global override is set.
 
 The global override is the same setting as **Hardware keyboard layout** under Windows Settings → Time & language → Language & region → language options. Saving a global override turns off "Use connected keyboard layout" and fixes the layout for the whole PC. Clearing the global override returns to the same state as "Use connected keyboard layout". The app also has a button that opens this Windows settings page.
 
@@ -79,9 +79,9 @@ When nothing is set, the layout is shown as "Auto-detect" and Windows decides ba
 Keep the built-in keyboard as Japanese and make only the external keyboard behave as US layout.
 
 > [!WARNING]
-> On many laptops, the built-in keyboard is connected as a PS/2 keyboard through ACPI. In that case, clearing the global override in step 2 makes **the built-in keyboard be recognized as US layout, and a device override cannot change it back to Japanese (JIS)** (see [Limitations](#limitations)).
+> On some laptops, the built-in keyboard is connected as a PS/2 keyboard through ACPI. In that case, clearing the global override in step 2 makes **the built-in keyboard be recognized as US layout, and a device override may not be able to change it back to Japanese (JIS)** (see [Limitations](#limitations)).
 >
-> Before you start, select the built-in keyboard in the list and check its **Device instance path**. If it starts with `ACPI\`, it is a PS/2 keyboard. If you want to keep the built-in keyboard as Japanese layout, do not follow these steps, and leave the global override set to **Japanese (JIS)**.
+> Before you start, select the built-in keyboard in the list and check its **Device instance path**. If it starts with `ACPI\`, it is a PS/2 keyboard and may be affected by this limitation. If you want to keep the built-in keyboard as Japanese layout, do not follow these steps, and leave the global override set to **Japanese (JIS)** (device overrides for the external keyboard then have no effect).
 
 1. Start mana and click **Restart as Administrator**.
 2. If the top of the window says "Preparation needed", a global override is still set. Click **Clear global overrides**. (If it says "Prepared", skip this step.)
@@ -149,22 +149,24 @@ Uninstalling the app does not delete this data. Delete it manually if you no lon
 
 ## Limitations
 
-### PS/2 keyboards follow only the global override
+### PS/2 keyboards may follow only the global override
 
-For HID keyboards connected over USB or Bluetooth, you can set the layout with a device override. For a PS/2 keyboard connected through ACPI (common for built-in laptop keyboards), however, the layout is determined only by the global override (`i8042prt`). Device overrides have no effect.
+For HID keyboards connected over USB or Bluetooth, you can set the layout with a device override. For a PS/2 keyboard connected through ACPI (used for the built-in keyboard on some laptops), however, the layout may be determined only by the global override (`i8042prt`), and device overrides set with this tool may have no effect.
 
-In addition, a PS/2 keyboard cannot report its keyboard type through Plug and Play. So when you clear the global override to return to "Use connected keyboard layout", a PS/2 keyboard is recognized as US layout (Enhanced 101/102).
+In addition, such a PS/2 keyboard cannot report its keyboard type through Plug and Play, so when you clear the global override to return to "Use connected keyboard layout", it is recognized as US layout (Enhanced 101/102). Some PS/2 keyboards might support Plug and Play, but we have not been able to confirm this.
 
-As a result, the following combination is not possible:
+As a result, the following combination may not be possible:
 
 - The laptop's built-in keyboard (PS/2) uses Japanese (JIS) layout
 - An external USB or Bluetooth keyboard uses US layout
 
 If you clear the global override so you can set the external keyboard per device, the built-in keyboard becomes US layout. The only way to make the built-in keyboard Japanese (JIS) is to set the global override to **Japanese (JIS)**.
 
-To check whether a keyboard is PS/2, select it in the list and see whether its **Device instance path** starts with `ACPI\`.
+To check whether a keyboard is PS/2, select it in the list and see whether its **Device instance path** starts with `ACPI\`. This limitation does not apply to laptops whose built-in keyboard is connected as a HID device (for example over USB or I2C).
 
 This limitation comes from how Windows works. It is expected to go away if a future version of Windows improves this behavior.
+
+**We would like to hear from you.** If you have managed to keep an ACPI-connected PS/2 built-in keyboard on a layout such as Japanese (JIS) while setting an external keyboard to a different layout, or know a way to make it work, please let us know through the [Applet LLC website](https://appletllc.com/). Including your PC model and the built-in keyboard's device instance path helps us check it.
 
 ## Troubleshooting
 
@@ -175,7 +177,7 @@ This limitation comes from how Windows works. It is expected to go away if a fut
 | "Install .NET" appears | Install .NET Desktop Runtime 9 (x64). If it appears even though the runtime is installed, reinstall with the latest MSI. |
 | Saving does nothing | Administrator rights are required. Click **Restart as Administrator**. |
 | The layout does not change after saving | A USB keyboard needs to be unplugged and replugged; a built-in keyboard or a global change needs a Windows restart. If a device override has no effect, also check that no global override remains (the top of the window should not say "Preparation needed"). |
-| After clearing the global override, the laptop's built-in keyboard became US layout | This is the limitation for PS/2 keyboards (see [Limitations](#limitations)). Apply the **Japanese (JIS)** preset to the global override and restart Windows to restore it. |
+| After clearing the global override, the laptop's built-in keyboard became US layout | This can happen with PS/2 keyboards (see [Limitations](#limitations)). Apply the **Japanese (JIS)** preset to the global override and restart Windows to restore it. |
 | Symbols are in the wrong places | Follow [Example 3: Undo the changes](#example-3-undo-the-changes) to clear the settings, then restart. |
 
 ## Building
