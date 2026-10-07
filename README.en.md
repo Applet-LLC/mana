@@ -166,7 +166,7 @@ To check whether a keyboard is PS/2, select it in the list and see whether its *
 
 This limitation comes from how Windows works. It is expected to go away if a future version of Windows improves this behavior.
 
-**We would like to hear from you.** If you have managed to keep an ACPI-connected PS/2 built-in keyboard on a layout such as Japanese (JIS) while setting an external keyboard to a different layout, or know a way to make it work, please let us know through the [Applet LLC website](https://appletllc.com/). Including your PC model and the built-in keyboard's device instance path helps us check it.
+**We would like to hear from you.** If you have managed to keep an ACPI-connected PS/2 built-in keyboard on a layout such as Japanese (JIS) while setting an external keyboard to a different layout, or know a way to make it work, please let us know on GitHub [Issues](https://github.com/Applet-LLC/mana/issues). Including your PC model and the built-in keyboard's device instance path helps us check it.
 
 ## Troubleshooting
 
