@@ -164,3 +164,7 @@ You can build the whole solution in Visual Studio 2022 (app, language selector l
 When you update a NuGet package, also update [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt).
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for design details.
+
+---
+
+Last updated: 7 October 2026

@@ -164,3 +164,7 @@ Visual Studio 2022 で、ソリューションを一括ビルドできます（�
 NuGet パッケージを追加・更新したときは、[THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt) も更新してください。
 
 設計の詳細は [ARCHITECTURE.md](ARCHITECTURE.md) を参照してください。
+
+---
+
+最終更新: 2026年10月7日
