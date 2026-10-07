@@ -737,7 +737,7 @@ public sealed partial class MainPage : Page
                 device.DeviceSubtype?.ToString() ?? "-");
         }
 
-        ShowWarningDialog(Localization.Get("Dialog_WarnGlobalActiveTitle"), message, showWebsite: false);
+        ShowWarningDialog(Localization.Get("Dialog_WarnGlobalActiveTitle"), message, showIssuesLink: false);
     }
 
     private void AcpiPs2WarningButton_Click(object sender, RoutedEventArgs e)
@@ -745,19 +745,19 @@ public sealed partial class MainPage : Page
         ShowWarningDialog(
             Localization.Get("Dialog_WarnAcpiPs2Title"),
             Localization.Get("Dialog_WarnAcpiPs2Message"),
-            showWebsite: true);
+            showIssuesLink: true);
     }
 
-    private void ShowWarningDialog(string title, string message, bool showWebsite)
+    private void ShowWarningDialog(string title, string message, bool showIssuesLink)
     {
         var panel = new StackPanel { Spacing = 8 };
         panel.Children.Add(new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap });
-        if (showWebsite)
+        if (showIssuesLink)
         {
             panel.Children.Add(new HyperlinkButton
             {
-                Content = "https://appletllc.com/",
-                NavigateUri = new Uri("https://appletllc.com/")
+                Content = "https://github.com/Applet-LLC/mana/issues",
+                NavigateUri = new Uri("https://github.com/Applet-LLC/mana/issues")
             });
         }
 
